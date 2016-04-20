@@ -88,6 +88,27 @@ public class ArtifactoryBuilder extends GlobalConfiguration {
             return FormValidation.ok();
         }
 
+        /**
+         * Performs on-the-fly validation of the form field 'ServerId'.
+         *
+         * @param value This parameter receives the value that the user has typed.
+         * @param artifactoryUrl This parameter receives the value that the user has typed as artifactory Url.
+         * @return Indicates the outcome of the validation. This is sent to the browser.
+         */
+        public FormValidation doCheckServerId(@QueryParameter String value, @QueryParameter String artifactoryUrl) throws IOException, ServletException {
+            if (value.length() == 0) {
+                return FormValidation.error("Please set a name");
+            }
+            ArtifactoryServer artifactoryServer = RepositoriesUtils.getArtifactoryServer(value, RepositoriesUtils.getArtifactoryServers());
+            if (artifactoryServer != null && !artifactoryServer.getUrl().equals(artifactoryUrl)) {
+                return FormValidation.error("Duplicated id");
+            }
+            if (value.length() < 4) {
+                return FormValidation.warning("Isn't the id too short?");
+            }
+            return FormValidation.ok();
+        }
+
         public FormValidation doTestConnection(
                 @QueryParameter("artifactoryUrl") final String url,
                 @QueryParameter("artifactory.timeout") final String timeout,
