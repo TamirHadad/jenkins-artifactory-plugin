@@ -118,7 +118,7 @@ public class GenericArtifactsDeployer {
         }
     }
 
-    private static class FilesDeployerCallable implements FilePath.FileCallable<List<Artifact>> {
+    public static class FilesDeployerCallable implements FilePath.FileCallable<List<Artifact>> {
 
         private final String repositoryKey;
         private BuildListener listener;

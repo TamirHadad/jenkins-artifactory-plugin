@@ -8,19 +8,26 @@ import org.kohsuke.stapler.DataBoundConstructor;
 /**
  * Created by romang on 4/19/16.
  */
-public class GenericResolver extends AbstractStepImpl {
+public class GenericDownload extends AbstractStepImpl implements GenericDownloadUpload{
 
-    private String artifactoryName;
+    private ArtifactoryPipelineServer artifactoryServer;
+    private String artifactoryServerID;
     private String json;
 
+
     @DataBoundConstructor
-    public GenericResolver(String artifactoryName, String json) {
-        this.artifactoryName = artifactoryName;
+    public GenericDownload(ArtifactoryPipelineServer artifactoryServer, String artifactoryServerID, String json) {
+        this.artifactoryServer = artifactoryServer;
+        this.artifactoryServerID = artifactoryServerID;
         this.json = json;
     }
 
-    public String getArtifactoryName() {
-        return artifactoryName;
+    public ArtifactoryPipelineServer getArtifactoryServer() {
+        return artifactoryServer;
+    }
+
+    public String getArtifactoryServerID() {
+        return artifactoryServerID;
     }
 
     public String getJson() {
@@ -31,7 +38,7 @@ public class GenericResolver extends AbstractStepImpl {
     public static class DescriptorImpl extends AbstractStepDescriptorImpl {
 
         public DescriptorImpl() {
-            super(GenericResolverExecution.class);
+            super(GenericDownloadExecution.class);
         }
 
         @Override
@@ -41,7 +48,7 @@ public class GenericResolver extends AbstractStepImpl {
 
         @Override
         public String getDisplayName() {
-            return "Artifactory pipeline step";
+            return "Artifactory download pipeline step";
         }
     }
 }

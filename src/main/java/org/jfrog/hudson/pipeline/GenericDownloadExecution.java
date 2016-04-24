@@ -1,14 +1,12 @@
 package org.jfrog.hudson.pipeline;
 
-import com.google.gson.Gson;
 import com.google.inject.Inject;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
-import org.acegisecurity.acls.NotFoundException;
-import org.apache.commons.cli.MissingArgumentException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepExecutionImpl;
 import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 import org.jfrog.build.api.Dependency;
@@ -20,7 +18,6 @@ import org.jfrog.hudson.ArtifactoryServer;
 import org.jfrog.hudson.CredentialsConfig;
 import org.jfrog.hudson.generic.DependenciesDownloaderImpl;
 import org.jfrog.hudson.util.JenkinsBuildInfoLog;
-import org.jfrog.hudson.util.RepositoriesUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -29,7 +26,7 @@ import java.util.List;
 /**
  * Created by romang on 4/19/16.
  */
-public class GenericResolverExecution extends AbstractStepExecutionImpl {
+public class GenericDownloadExecution extends AbstractStepExecutionImpl {
     @StepContextParameter
     private transient FilePath ws;
 
@@ -43,45 +40,28 @@ public class GenericResolverExecution extends AbstractStepExecutionImpl {
     private transient TaskListener listener;
 
     @Inject(optional = true)
-    private transient GenericResolver step;
+    private transient GenericDownload step;
 
     private transient List<Dependency> publishedDependencies;
 
     private static final long serialVersionUID = 1L;
 
-    public boolean start() throws Exception {
+    private Log log;
 
-        Gson gson = new Gson();
-        ArtifactoryDownloadJson downloadJson = gson.fromJson(step.getJson(), ArtifactoryDownloadJson.class);
-        ArtifactoryServer server = prepareArtifactoryServer(downloadJson);
-        downloadArtifacts(server, downloadJson);
+    public boolean start() throws Exception {
+        log = new JenkinsBuildInfoLog(listener);
+
+        ObjectMapper mapper = new ObjectMapper();
+        ArtifactoryDownloadUploadJson downloadJson = mapper.readValue(step.getJson(), ArtifactoryDownloadUploadJson.class);
+        downloadArtifacts(downloadJson);
+
+        listener.getLogger().println(downloadJson.getFiles()[1].getAql());
 
         getContext().onSuccess(null);
         return false;
     }
 
-    private ArtifactoryServer prepareArtifactoryServer(ArtifactoryDownloadJson downloadJson) {
-        if (downloadJson.getUrl() != null && downloadJson.getUrl() != "") {
-            CredentialsConfig credentials = new CredentialsConfig(downloadJson.getUsername(), downloadJson.getPassword(), null, null);
-
-            return new ArtifactoryServer(null, downloadJson.getUrl(), credentials,
-                    credentials, 0, downloadJson.getBypassProxy());
-        }
-
-        String artifactoryServerID = step.getArtifactoryName();
-        if(artifactoryServerID == null || artifactoryServerID == ""){
-            getContext().onFailure(new MissingArgumentException("Artifactory server name is mandatory"));
-        }
-
-        ArtifactoryServer server = RepositoriesUtils.getArtifactoryServer(step.getArtifactoryName(), RepositoriesUtils.getArtifactoryServers());
-        if(server == null){
-            getContext().onFailure(new NotFoundException("Couldn't find Artifactory named: " + artifactoryServerID));
-        }
-        return server;
-    }
-
-
-    private void downloadArtifacts(ArtifactoryServer server, ArtifactoryDownloadJson downloadJson) {
+    private void downloadArtifacts(ArtifactoryDownloadUploadJson downloadJson) {
         hudson.ProxyConfiguration proxy = Jenkins.getInstance().proxy;
         ProxyConfiguration proxyConfiguration = null;
         if (proxy != null) {
@@ -92,12 +72,12 @@ public class GenericResolverExecution extends AbstractStepExecutionImpl {
             proxyConfiguration.password = proxy.getPassword();
         }
 
+        ArtifactoryServer server = PipelineUtils.prepareArtifactoryServer(getContext(), step);
         CredentialsConfig preferredResolver = server.getDeployerCredentialsConfig();
         ArtifactoryDependenciesClient dependenciesClient = server.createArtifactoryDependenciesClient(
                 preferredResolver.provideUsername(), preferredResolver.providePassword(), proxyConfiguration,
                 null);
 
-        Log log = new JenkinsBuildInfoLog(listener);
         DependenciesDownloaderImpl dependancyDownloader = new DependenciesDownloaderImpl(dependenciesClient, ws, log);
         DependenciesHelper helper = new DependenciesHelper(dependancyDownloader, log);
         try {
@@ -108,7 +88,6 @@ public class GenericResolverExecution extends AbstractStepExecutionImpl {
             e.printStackTrace();
         }
     }
-
 
     public void stop(@Nonnull Throwable throwable) throws Exception {
 

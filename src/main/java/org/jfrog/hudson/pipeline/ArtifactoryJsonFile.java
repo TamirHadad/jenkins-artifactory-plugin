@@ -11,7 +11,10 @@ public class ArtifactoryJsonFile {
     private String target;
 
     public String getAql() {
-        return aql.toString();
+        if (aql != null) {
+            return aql.toString();
+        }
+        return null;
     }
 
     public String getPattern() {
@@ -20,5 +23,17 @@ public class ArtifactoryJsonFile {
 
     public String getTarget() {
         return target;
+    }
+
+    public void setAql(JSONObject aql) {
+        this.aql = aql;
+    }
+
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
     }
 }
