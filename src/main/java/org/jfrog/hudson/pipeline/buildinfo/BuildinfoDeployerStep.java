@@ -78,7 +78,7 @@ public class BuildinfoDeployerStep extends AbstractStepImpl {
 
         @Override
         public String getDisplayName() {
-            return "Publish build info to Artifactory";
+            return "Artifactory: Publish build info";
         }
 
         public ListBoxModel doFillArtifactoryServerIDItems() {

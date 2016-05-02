@@ -61,7 +61,7 @@ public class GenericUploadStep extends AbstractStepImpl {
 
         @Override
         public String getDisplayName() {
-            return "Artifactory upload pipeline step";
+            return "Artifactory: Upload artifacts";
         }
 
         public ListBoxModel doFillArtifactoryServerIDItems() {

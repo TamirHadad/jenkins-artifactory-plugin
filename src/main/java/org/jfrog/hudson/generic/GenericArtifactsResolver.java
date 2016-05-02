@@ -26,6 +26,7 @@ import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenc
 import org.jfrog.build.extractor.clientConfiguration.util.AntDependenciesHelper;
 import org.jfrog.build.extractor.clientConfiguration.util.BuildDependenciesHelper;
 import org.jfrog.build.extractor.clientConfiguration.util.DependenciesDownloader;
+import org.jfrog.build.extractor.clientConfiguration.util.DependenciesHelper;
 import org.jfrog.hudson.util.JenkinsBuildInfoLog;
 
 import java.io.IOException;

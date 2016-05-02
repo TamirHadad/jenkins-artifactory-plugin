@@ -65,7 +65,7 @@ public class GenericDownloadStep extends AbstractStepImpl {
 
         @Override
         public String getDisplayName() {
-            return "Artifactory download step";
+            return "Artifactory: Download artifacts";
         }
 
         public ListBoxModel doFillArtifactoryServerIDItems() {
