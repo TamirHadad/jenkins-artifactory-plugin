@@ -65,7 +65,7 @@ public class CreateArtifactoryServerStep extends AbstractStepImpl {
 
         @Override
         public String getDisplayName() {
-            return "Create Artifactory server object";
+            return "Creates Artifactory server object";
         }
     }
 }

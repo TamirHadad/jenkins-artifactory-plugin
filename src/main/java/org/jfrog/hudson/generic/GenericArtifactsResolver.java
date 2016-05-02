@@ -23,9 +23,9 @@ import org.jfrog.build.api.Dependency;
 import org.jfrog.build.api.dependency.BuildDependency;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
+import org.jfrog.build.extractor.clientConfiguration.util.AntDependenciesHelper;
 import org.jfrog.build.extractor.clientConfiguration.util.BuildDependenciesHelper;
 import org.jfrog.build.extractor.clientConfiguration.util.DependenciesDownloader;
-import org.jfrog.build.extractor.clientConfiguration.util.AntDependenciesHelper;
 import org.jfrog.hudson.util.JenkinsBuildInfoLog;
 
 import java.io.IOException;
@@ -52,7 +52,7 @@ public class GenericArtifactsResolver {
     }
 
     public List<Dependency> retrievePublishedDependencies() throws IOException, InterruptedException {
-        AntDependenciesHelper helper = new AntDependenciesHelper(createDependenciesDownloader(), log);
+        DependenciesHelper helper = new AntDependenciesHelper(createDependenciesDownloader(), log);
         return helper.retrievePublishedDependencies(resolvePattern);
     }
 

@@ -1,9 +1,13 @@
 package org.jfrog.hudson.pipeline;
 
+import org.kohsuke.stapler.DataBoundConstructor;
+
+import java.io.Serializable;
+
 /**
  * Created by romang on 4/21/16.
  */
-public class ArtifactoryPipelineServer {
+public class ArtifactoryPipelineServer implements Serializable {
     private String serverName;
     private String url;
     private String username;

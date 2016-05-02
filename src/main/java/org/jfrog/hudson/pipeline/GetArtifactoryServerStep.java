@@ -3,6 +3,7 @@ package org.jfrog.hudson.pipeline;
 import com.google.inject.Inject;
 import hudson.Extension;
 import hudson.Launcher;
+import hudson.util.ListBoxModel;
 import org.acegisecurity.acls.NotFoundException;
 import org.apache.commons.cli.MissingArgumentException;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
@@ -73,6 +74,9 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
             return "Returns Artifactory server object";
         }
 
+        public ListBoxModel doFillArtifactoryServerIDItems() {
+            return PipelineUtils.getServerListBox();
+        }
     }
 
 }

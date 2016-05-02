@@ -4,9 +4,7 @@ import com.google.common.collect.*;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Util;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
-import hudson.model.Cause;
+import hudson.model.*;
 import hudson.remoting.VirtualChannel;
 import jenkins.model.Jenkins;
 import org.apache.commons.io.FilenameUtils;
@@ -42,14 +40,14 @@ public class GenericArtifactsDeployer {
     private static final String SHA1 = "SHA1";
     private static final String MD5 = "MD5";
 
-    private AbstractBuild build;
+    private Run build;
     private ArtifactoryGenericConfigurator configurator;
     private BuildListener listener;
     private CredentialsConfig credentialsConfig;
     private EnvVars env;
     private List<Artifact> artifactsToDeploy = Lists.newArrayList();
 
-    public GenericArtifactsDeployer(AbstractBuild build, ArtifactoryGenericConfigurator configurator,
+    public GenericArtifactsDeployer(Run build, ArtifactoryGenericConfigurator configurator,
                                     BuildListener listener, CredentialsConfig credentialsConfig)
             throws IOException, InterruptedException, NoSuchAlgorithmException {
         this.build = build;
@@ -73,7 +71,7 @@ public class GenericArtifactsDeployer {
             return;
         }
 
-        FilePath workingDir = build.getWorkspace();
+        FilePath workingDir = build.getExecutor().getCurrentWorkspace();
         ArrayListMultimap<String, String> propertiesToAdd = getbuildPropertiesMap();
         ArtifactoryServer artifactoryServer = configurator.getArtifactoryServer();
         String repositoryKey = Util.replaceMacro(configurator.getRepositoryKey(), env);
@@ -121,14 +119,14 @@ public class GenericArtifactsDeployer {
     public static class FilesDeployerCallable implements FilePath.FileCallable<List<Artifact>> {
 
         private final String repositoryKey;
-        private BuildListener listener;
+        private TaskListener listener;
         private Multimap<String, String> patternPairs;
         private ArtifactoryServer server;
         private Credentials credentials;
         private ArrayListMultimap<String, String> buildProperties;
         private ProxyConfiguration proxyConfiguration;
 
-        public FilesDeployerCallable(BuildListener listener, Multimap<String, String> patternPairs,
+        public FilesDeployerCallable(TaskListener listener, Multimap<String, String> patternPairs,
                                      ArtifactoryServer server, Credentials credentials, String repositoryKey,
                                      ArrayListMultimap<String, String> buildProperties, ProxyConfiguration proxyConfiguration) {
             this.listener = listener;

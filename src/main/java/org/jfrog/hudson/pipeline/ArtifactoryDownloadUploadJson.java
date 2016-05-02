@@ -5,13 +5,13 @@ package org.jfrog.hudson.pipeline;
  */
 public class ArtifactoryDownloadUploadJson {
 
-    private ArtifactoryJsonFile[] files;
+    private ArtifactoryFileJson[] files;
 
-    public ArtifactoryJsonFile[] getFiles() {
+    public ArtifactoryFileJson[] getFiles() {
         return files;
     }
 
-    public void setFiles(ArtifactoryJsonFile[] files) {
+    public void setFiles(ArtifactoryFileJson[] files) {
         this.files = files;
     }
 }

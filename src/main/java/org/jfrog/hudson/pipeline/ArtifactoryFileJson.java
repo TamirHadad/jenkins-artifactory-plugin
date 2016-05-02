@@ -1,18 +1,19 @@
 package org.jfrog.hudson.pipeline;
 
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Created by romang on 4/20/16.
  */
-public class ArtifactoryJsonFile {
-    private JSONObject aql;
+public class ArtifactoryFileJson {
+    private ArtifactoryAqlJson aql;
     private String pattern;
     private String target;
 
     public String getAql() {
-        if (aql != null) {
-            return aql.toString();
+        if(aql != null) {
+            return aql.getFind();
         }
         return null;
     }
@@ -25,7 +26,7 @@ public class ArtifactoryJsonFile {
         return target;
     }
 
-    public void setAql(JSONObject aql) {
+    public void setAql(ArtifactoryAqlJson aql) {
         this.aql = aql;
     }
 

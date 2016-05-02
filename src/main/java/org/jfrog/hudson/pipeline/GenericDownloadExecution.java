@@ -13,7 +13,9 @@ import org.jfrog.build.api.Dependency;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.build.client.ProxyConfiguration;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryDependenciesClient;
+import org.jfrog.build.extractor.clientConfiguration.util.AqlDependenciesHelper;
 import org.jfrog.build.extractor.clientConfiguration.util.DependenciesHelper;
+import org.jfrog.build.extractor.clientConfiguration.util.WildcardDependenciesHelper;
 import org.jfrog.hudson.ArtifactoryServer;
 import org.jfrog.hudson.CredentialsConfig;
 import org.jfrog.hudson.generic.DependenciesDownloaderImpl;
@@ -40,9 +42,7 @@ public class GenericDownloadExecution extends AbstractStepExecutionImpl {
     private transient TaskListener listener;
 
     @Inject(optional = true)
-    private transient GenericDownload step;
-
-    private transient List<Dependency> publishedDependencies;
+    private transient GenericDownloadStep step;
 
     private static final long serialVersionUID = 1L;
 
@@ -55,9 +55,7 @@ public class GenericDownloadExecution extends AbstractStepExecutionImpl {
         ArtifactoryDownloadUploadJson downloadJson = mapper.readValue(step.getJson(), ArtifactoryDownloadUploadJson.class);
         downloadArtifacts(downloadJson);
 
-        listener.getLogger().println(downloadJson.getFiles()[1].getAql());
-
-        getContext().onSuccess(null);
+        getContext().onSuccess(step.getBuildinfo());
         return false;
     }
 
@@ -72,16 +70,34 @@ public class GenericDownloadExecution extends AbstractStepExecutionImpl {
             proxyConfiguration.password = proxy.getPassword();
         }
 
-        ArtifactoryServer server = PipelineUtils.prepareArtifactoryServer(getContext(), step);
+        ArtifactoryServer server = step.getServer();
         CredentialsConfig preferredResolver = server.getDeployerCredentialsConfig();
         ArtifactoryDependenciesClient dependenciesClient = server.createArtifactoryDependenciesClient(
                 preferredResolver.provideUsername(), preferredResolver.providePassword(), proxyConfiguration,
                 null);
 
         DependenciesDownloaderImpl dependancyDownloader = new DependenciesDownloaderImpl(dependenciesClient, ws, log);
-        DependenciesHelper helper = new DependenciesHelper(dependancyDownloader, log);
+        AqlDependenciesHelper aqlHelper = new AqlDependenciesHelper(dependancyDownloader, server.getUrl(), "", log);
+        WildcardDependenciesHelper patternHelper = new WildcardDependenciesHelper(dependancyDownloader, server.getUrl(), "", log);
+
+        for (ArtifactoryFileJson file : downloadJson.getFiles()) {
+            if (file.getPattern() != null) {
+                patternHelper.setTarget(file.getTarget());
+                download(file.getPattern(), patternHelper);
+            }
+
+            if (file.getAql() != null) {
+                aqlHelper.setTarget(file.getTarget());
+                download(file.getAql(), aqlHelper);
+            }
+        }
+    }
+
+    private void download(String downloadStr, DependenciesHelper helper) {
         try {
-            publishedDependencies = helper.retrievePublishedDependencies(downloadJson.getFiles()[0].getPattern());
+            List<Dependency> resolvedDependencies = helper.retrievePublishedDependencies(downloadStr);
+            step.getBuildinfo().appendPublishedDependencies(resolvedDependencies);
+            PipelineUtils.getRunBuildInfo(build).appendPublishedDependencies(resolvedDependencies);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
