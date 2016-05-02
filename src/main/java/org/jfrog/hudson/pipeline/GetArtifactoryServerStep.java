@@ -71,7 +71,7 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
 
         @Override
         public String getDisplayName() {
-            return "Artifactory: Get Artifactory server";
+            return "Artifactory - Get Artifactory server";
         }
 
         public ListBoxModel doFillArtifactoryServerIDItems() {
