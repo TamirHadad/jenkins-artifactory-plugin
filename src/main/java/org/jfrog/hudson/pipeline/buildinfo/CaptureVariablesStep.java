@@ -84,12 +84,12 @@ public class CaptureVariablesStep /*extends AbstractStepImpl*/ {
 
         @Override
         public String getFunctionName() {
-            return "captureVariables";
+            return "rtCaptureVariables";
         }
 
         @Override
         public String getDisplayName() {
-            return "Artifactory - Capture environment and system variables, add them to build info";
+            return "Capture environment and system variables, add them to build info";
         }
     }
 }

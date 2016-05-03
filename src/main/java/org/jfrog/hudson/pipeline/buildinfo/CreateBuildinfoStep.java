@@ -53,12 +53,12 @@ public class CreateBuildinfoStep extends AbstractStepImpl {
 
         @Override
         public String getFunctionName() {
-            return "createBuildinfo";
+            return "rtCreateBuildInfo";
         }
 
         @Override
         public String getDisplayName() {
-            return "Artifactory - Create buildinfo";
+            return "Create buildInfo";
         }
     }
 

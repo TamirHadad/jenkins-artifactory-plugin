@@ -1,7 +1,5 @@
 package org.jfrog.hudson.pipeline;
 
-import org.kohsuke.stapler.DataBoundConstructor;
-
 import java.io.Serializable;
 
 /**
@@ -13,18 +11,21 @@ public class ArtifactoryPipelineServer implements Serializable {
     private String username;
     private String password;
     private boolean bypassProxy;
+    private String credentialsId;
 
-    public ArtifactoryPipelineServer(String artifactoryServerName, String url, String username, String password) {
+    public ArtifactoryPipelineServer(String artifactoryServerName, String url, String username, String password, String credentialsId) {
         serverName = artifactoryServerName;
         this.url = url;
         this.username = username;
         this.password = password;
+        this.credentialsId = credentialsId;
     }
 
-    public ArtifactoryPipelineServer(String url, String username, String password) {
+    public ArtifactoryPipelineServer(String url, String username, String password, String credentialsId) {
         this.url = url;
         this.username = username;
         this.password = password;
+        this.credentialsId = credentialsId;
     }
 
     public String getServerName() {
@@ -61,5 +62,9 @@ public class ArtifactoryPipelineServer implements Serializable {
 
     public boolean isBypassProxy() {
         return bypassProxy;
+    }
+
+    public String getCredentialsId() {
+        return credentialsId;
     }
 }

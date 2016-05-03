@@ -50,7 +50,7 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
             }
 
             return new ArtifactoryPipelineServer(artifactoryServerID, server.getUrl(),
-                    server.getResolvingCredentialsConfig().getUsername(), server.getResolvingCredentialsConfig().getPassword());
+                    server.getResolvingCredentialsConfig().getUsername(), server.getResolvingCredentialsConfig().getPassword(), "");
         }
 
         private static final long serialVersionUID = 1L;
@@ -66,17 +66,16 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
 
         @Override
         public String getFunctionName() {
-            return "getArtifactoryServer";
+            return "rtGetServer";
         }
 
         @Override
         public String getDisplayName() {
-            return "Artifactory - Get Artifactory server";
+            return "Get Artifactory server from Jenkins config";
         }
 
         public ListBoxModel doFillArtifactoryServerIDItems() {
             return PipelineUtils.getServerListBox();
         }
     }
-
 }

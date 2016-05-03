@@ -56,12 +56,12 @@ public class GenericUploadStep extends AbstractStepImpl {
 
         @Override
         public String getFunctionName() {
-            return "artifactoryUpload";
+            return "rtUpload";
         }
 
         @Override
         public String getDisplayName() {
-            return "Artifactory - Upload artifacts";
+            return "Upload artifacts";
         }
 
         public ListBoxModel doFillArtifactoryServerIDItems() {
@@ -81,7 +81,7 @@ public class GenericUploadStep extends AbstractStepImpl {
             String json = formData.getString("json");
 
             try {
-                return new GenericUploadStep(new ArtifactoryPipelineServer(null, null, null), artifactoryServerId, json, null);
+                return new GenericUploadStep(new ArtifactoryPipelineServer(null, null, null, null), artifactoryServerId, json, null);
             } catch (MissingArgumentException e) {
                 e.printStackTrace();
             }
