@@ -4,8 +4,10 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
+import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.model.Cause;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
@@ -14,9 +16,14 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepExecutionImpl;
 import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 import org.jfrog.build.api.Artifact;
+import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.hudson.ArtifactoryServer;
+import org.jfrog.hudson.action.ActionableHelper;
 import org.jfrog.hudson.generic.GenericArtifactsDeployer;
+import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildinfo;
+import org.jfrog.hudson.util.BuildUniqueIdentifierHelper;
+import org.jfrog.hudson.util.ExtractorUtils;
 import org.jfrog.hudson.util.JenkinsBuildInfoLog;
 
 import javax.annotation.Nonnull;
@@ -45,24 +52,27 @@ public class GenericUploadExecution extends AbstractStepExecutionImpl {
     private static final long serialVersionUID = 1L;
 
     private Log log;
+    private PipelineBuildinfo buildinfo;
 
     public boolean start() throws Exception {
         log = new JenkinsBuildInfoLog(listener);
+        buildinfo = PipelineUtils.prepareBuildinfo(build, step.getBuildinfo());
+
         ObjectMapper mapper = new ObjectMapper();
         ArtifactoryDownloadUploadJson uploadJson = mapper.readValue(step.getJson(), ArtifactoryDownloadUploadJson.class);
 
         uploadArtifacts(uploadJson);
 
         // return buildinfo
-        getContext().onSuccess(step.getBuildinfo());
+        getContext().onSuccess(buildinfo);
         return false;
     }
 
     private void uploadArtifacts(ArtifactoryDownloadUploadJson uploadJson) {
-        ArrayListMultimap<String, String> propertiesToAdd = ArrayListMultimap.create();
         try {
             ArtifactoryServer server = step.getServer();
             for (ArtifactoryFileJson file : uploadJson.getFiles()) {
+                ArrayListMultimap<String, String> propertiesToAdd = getPropertiesMap(file.getProps());
                 Multimap<String, String> pairs = HashMultimap.create();
 
                 String repoKey = getRepositoryKey(file.getTarget());
@@ -72,7 +82,7 @@ public class GenericUploadExecution extends AbstractStepExecutionImpl {
                         server.getDeployerCredentialsConfig().getCredentials(), repoKey, propertiesToAdd,
                         server.createProxyConfiguration(Jenkins.getInstance().proxy)));
 
-                step.getBuildinfo().appendDeployedArtifacts(artifactsToDeploy);
+                buildinfo.appendDeployedArtifacts(artifactsToDeploy);
                 PipelineUtils.getRunBuildInfo(build).appendDeployedArtifacts(artifactsToDeploy);
             }
         } catch (IOException e) {
@@ -80,7 +90,47 @@ public class GenericUploadExecution extends AbstractStepExecutionImpl {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
 
+    private ArrayListMultimap<String, String> getPropertiesMap(String props) throws IOException, InterruptedException {
+        ArrayListMultimap<String, String> properties = ArrayListMultimap.create();
+
+        if (buildinfo.getName() != null) {
+            properties.put("build.name", buildinfo.getName());
+        } else {
+            properties.put("build.name", BuildUniqueIdentifierHelper.getBuildName(build));
+        }
+
+        if (buildinfo.getNumber() != null) {
+            properties.put("build.number", buildinfo.getNumber());
+        } else {
+            properties.put("build.number", BuildUniqueIdentifierHelper.getBuildNumber(build));
+        }
+
+        properties.put("build.timestamp", build.getTimestamp().getTime().getTime() + "");
+        Cause.UpstreamCause parent = ActionableHelper.getUpstreamCause(build);
+        if (parent != null) {
+            properties.put("build.parentName", ExtractorUtils.sanitizeBuildName(parent.getUpstreamProject()));
+            properties.put("build.parentNumber", parent.getUpstreamBuild() + "");
+        }
+        EnvVars env = getContext().get(EnvVars.class);
+        String revision = ExtractorUtils.getVcsRevision(env);
+        if (StringUtils.isNotBlank(revision)) {
+            properties.put(BuildInfoFields.VCS_REVISION, revision);
+        }
+
+        if (props == null) {
+            return properties;
+        }
+
+        for (String prop : props.trim().split(";")) {
+            String key = StringUtils.substringBefore(prop, "=");
+            String values = StringUtils.substringAfter(prop, "=");
+            for (String value : values.split(",")) {
+                properties.put(key, value);
+            }
+        }
+        return properties;
     }
 
     private String getRepositoryKey(String path) {
@@ -89,16 +139,6 @@ public class GenericUploadExecution extends AbstractStepExecutionImpl {
 
     private String getLocalPath(String path) {
         return StringUtils.substringAfter(path, "/");
-    }
-
-    private Multimap<String, String> prepareUploadPairs(ArtifactoryDownloadUploadJson uploadJson) {
-
-        Multimap<String, String> pairs = HashMultimap.create();
-        for (ArtifactoryFileJson file : uploadJson.getFiles()) {
-
-            pairs.put(file.getPattern(), file.getTarget());
-        }
-        return pairs;
     }
 
     public void stop(@Nonnull Throwable throwable) throws Exception {

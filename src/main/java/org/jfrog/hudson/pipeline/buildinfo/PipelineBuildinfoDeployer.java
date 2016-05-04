@@ -47,7 +47,7 @@ public class PipelineBuildinfoDeployer extends AbstractBuildInfoDeployer {
         if (StringUtils.isNotEmpty(pipelineBuildinfo.getNumber())) {
             buildInfo.setNumber(pipelineBuildinfo.getNumber());
         } else {
-            buildInfo.setNumber(PipelineUtils.getBuildName(buildInfo.getNumber()));
+            buildInfo.setNumber(PipelineUtils.getBuildNumber(buildInfo.getNumber()));
         }
     }
 

@@ -7,6 +7,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.eclipse.jgit.util.StringUtils;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepExecutionImpl;
 import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 import org.jfrog.build.api.Dependency;
@@ -19,6 +20,7 @@ import org.jfrog.build.extractor.clientConfiguration.util.WildcardDependenciesHe
 import org.jfrog.hudson.ArtifactoryServer;
 import org.jfrog.hudson.CredentialsConfig;
 import org.jfrog.hudson.generic.DependenciesDownloaderImpl;
+import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildinfo;
 import org.jfrog.hudson.util.JenkinsBuildInfoLog;
 
 import javax.annotation.Nonnull;
@@ -46,16 +48,19 @@ public class GenericDownloadExecution extends AbstractStepExecutionImpl {
 
     private static final long serialVersionUID = 1L;
 
+    private PipelineBuildinfo buildinfo;
+
     private Log log;
 
     public boolean start() throws Exception {
         log = new JenkinsBuildInfoLog(listener);
+        buildinfo = PipelineUtils.prepareBuildinfo(build, step.getBuildinfo());
 
         ObjectMapper mapper = new ObjectMapper();
         ArtifactoryDownloadUploadJson downloadJson = mapper.readValue(step.getJson(), ArtifactoryDownloadUploadJson.class);
         downloadArtifacts(downloadJson);
 
-        getContext().onSuccess(step.getBuildinfo());
+        getContext().onSuccess(buildinfo);
         return false;
     }
 
@@ -78,14 +83,18 @@ public class GenericDownloadExecution extends AbstractStepExecutionImpl {
 
         DependenciesDownloaderImpl dependancyDownloader = new DependenciesDownloaderImpl(dependenciesClient, ws, log);
         AqlDependenciesHelper aqlHelper = new AqlDependenciesHelper(dependancyDownloader, server.getUrl(), "", log);
-        WildcardDependenciesHelper patternHelper = new WildcardDependenciesHelper(dependancyDownloader, server.getUrl(), "", log);
+        WildcardDependenciesHelper wildcardHelper = new WildcardDependenciesHelper(dependancyDownloader, server.getUrl(), "", log);
 
         for (ArtifactoryFileJson file : downloadJson.getFiles()) {
             if (file.getPattern() != null) {
-                patternHelper.setTarget(file.getTarget());
-                download(file.getPattern(), patternHelper);
-            }
+                wildcardHelper.setTarget(file.getTarget());
+                boolean isFlat = file.getFlat() != null ? StringUtils.toBoolean(file.getFlat()) : false;
+                wildcardHelper.setFlatDownload(isFlat);
+                boolean isRecursive = file.getRecursive() != null ? StringUtils.toBoolean(file.getRecursive()) : true;
+                wildcardHelper.setRecursive(isRecursive);
 
+                download(file.getPattern(), wildcardHelper);
+            }
             if (file.getAql() != null) {
                 aqlHelper.setTarget(file.getTarget());
                 download(file.getAql(), aqlHelper);
@@ -96,7 +105,8 @@ public class GenericDownloadExecution extends AbstractStepExecutionImpl {
     private void download(String downloadStr, DependenciesHelper helper) {
         try {
             List<Dependency> resolvedDependencies = helper.retrievePublishedDependencies(downloadStr);
-            step.getBuildinfo().appendPublishedDependencies(resolvedDependencies);
+
+            buildinfo.appendPublishedDependencies(resolvedDependencies);
             PipelineUtils.getRunBuildInfo(build).appendPublishedDependencies(resolvedDependencies);
         } catch (IOException e) {
             e.printStackTrace();

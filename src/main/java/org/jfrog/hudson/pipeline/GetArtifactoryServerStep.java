@@ -54,7 +54,6 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
         }
 
         private static final long serialVersionUID = 1L;
-
     }
 
     @Extension

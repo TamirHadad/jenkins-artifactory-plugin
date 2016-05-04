@@ -1,16 +1,12 @@
 package org.jfrog.hudson.pipeline;
 
-import hudson.Util;
 import hudson.model.Run;
-import hudson.tools.ToolDescriptor;
-import hudson.tools.ToolInstallation;
 import hudson.util.ListBoxModel;
 import org.apache.commons.cli.MissingArgumentException;
 import org.jfrog.hudson.ArtifactoryServer;
 import org.jfrog.hudson.CredentialsConfig;
 import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildinfo;
 import org.jfrog.hudson.util.RepositoriesUtils;
-import org.kohsuke.stapler.QueryParameter;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,12 +33,10 @@ public class PipelineUtils {
 
         if (artifactoryServerID == null && pipelineServer == null) {
             return null;
-//            throw new MissingArgumentException("Artifactory server ID or Artifactory server are mandatory");
         }
 
         if (artifactoryServerID != null && pipelineServer != null) {
             return null;
-//            throw new IllegalArgumentException("Both Artifactory server ID and Artifactory server cannot be declared together");
         }
 
         if (pipelineServer != null) {
@@ -56,7 +50,6 @@ public class PipelineUtils {
         ArtifactoryServer server = RepositoriesUtils.getArtifactoryServer(artifactoryServerID, RepositoriesUtils.getArtifactoryServers());
         if (server == null) {
             return null;
-//            throw new NotFoundException("Couldn't find Artifactory named: " + artifactoryServerID);
         }
         return server;
     }
@@ -72,21 +65,19 @@ public class PipelineUtils {
         return r;
     }
 
-    public ListBoxModel doFillNameItems(@QueryParameter String type) {
-        type = Util.fixEmpty(type);
-        ListBoxModel r = new ListBoxModel();
-        for (ToolDescriptor<?> desc : ToolInstallation.all()) {
-            if (type != null && !desc.getId().equals(type)) {
-                continue;
-            }
-            for (ToolInstallation tool : desc.getInstallations()) {
-                r.add(tool.getName());
-            }
+
+    public static PipelineBuildinfo prepareBuildinfo(Run run, PipelineBuildinfo buildinfo){
+        if(buildinfo == null){
+            return new PipelineBuildinfo();
         }
-        return r;
+
+        if(buildinfo.getNumber() == null){
+            buildinfo.setNumber(getBuildNumber(String.valueOf(run.getNumber())));
+        }
+        return buildinfo;
     }
 
-    public static String getBuildName(String buildNumberStr) {
+    public static String getBuildNumber(String buildNumberStr) {
         int buildNumber = Integer.parseInt(buildNumberStr);
         if (buildNumber != PipelineUtils.buildNumber) {
             PipelineUtils.buildNumber = buildNumber;
@@ -97,7 +88,9 @@ public class PipelineUtils {
 
     public static PipelineBuildinfo getRunBuildInfo(Run run) {
         if (!jobBuildInfo.containsKey(run.getId())) {
-            jobBuildInfo.put(run.getId(), new PipelineBuildinfo());
+            PipelineBuildinfo buildinfo = new PipelineBuildinfo();
+            buildinfo.setNumber(String.valueOf(run.getNumber()));
+            jobBuildInfo.put(run.getId(), buildinfo);
         }
 
         return jobBuildInfo.get(run.getId());

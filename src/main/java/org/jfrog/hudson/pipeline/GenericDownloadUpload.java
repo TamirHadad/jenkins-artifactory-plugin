@@ -21,10 +21,6 @@ public class GenericDownloadUpload {
         this.server = PipelineUtils.prepareArtifactoryServer(artifactoryServerID, artifactoryServer);
         this.json = json;
         this.buildinfo = buildinfo;
-
-        if (this.buildinfo == null) {
-            this.buildinfo = new PipelineBuildinfo();
-        }
     }
 
     public ArtifactoryServer getServer() {
