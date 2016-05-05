@@ -81,7 +81,7 @@ public class GenericUploadStep extends AbstractStepImpl {
             String json = formData.getString("json");
 
             try {
-                return new GenericUploadStep(new ArtifactoryPipelineServer(null, null, null, null), artifactoryServerId, json, null);
+                return new GenericUploadStep(new ArtifactoryPipelineServer(null, null, null), artifactoryServerId, json, null);
             } catch (MissingArgumentException e) {
                 e.printStackTrace();
             }

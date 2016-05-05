@@ -50,7 +50,7 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
             }
 
             return new ArtifactoryPipelineServer(artifactoryServerID, server.getUrl(),
-                    server.getResolvingCredentialsConfig().getUsername(), server.getResolvingCredentialsConfig().getPassword(), "");
+                    server.getResolvingCredentialsConfig().getUsername(), server.getResolvingCredentialsConfig().getPassword());
         }
 
         private static final long serialVersionUID = 1L;

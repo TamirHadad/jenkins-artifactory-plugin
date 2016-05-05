@@ -11,21 +11,18 @@ public class ArtifactoryPipelineServer implements Serializable {
     private String username;
     private String password;
     private boolean bypassProxy;
-    private String credentialsId;
 
-    public ArtifactoryPipelineServer(String artifactoryServerName, String url, String username, String password, String credentialsId) {
+    public ArtifactoryPipelineServer(String artifactoryServerName, String url, String username, String password) {
         serverName = artifactoryServerName;
         this.url = url;
         this.username = username;
         this.password = password;
-        this.credentialsId = credentialsId;
     }
 
-    public ArtifactoryPipelineServer(String url, String username, String password, String credentialsId) {
+    public ArtifactoryPipelineServer(String url, String username, String password) {
         this.url = url;
         this.username = username;
         this.password = password;
-        this.credentialsId = credentialsId;
     }
 
     public String getServerName() {
@@ -64,7 +61,4 @@ public class ArtifactoryPipelineServer implements Serializable {
         return bypassProxy;
     }
 
-    public String getCredentialsId() {
-        return credentialsId;
-    }
 }

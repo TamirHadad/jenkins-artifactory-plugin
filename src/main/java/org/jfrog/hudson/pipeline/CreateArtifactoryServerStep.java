@@ -2,16 +2,12 @@ package org.jfrog.hudson.pipeline;
 
 import com.google.inject.Inject;
 import hudson.Extension;
-import hudson.model.Item;
-import hudson.util.ListBoxModel;
 import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousStepExecution;
 import org.jenkinsci.plugins.workflow.steps.Step;
-import org.jfrog.hudson.util.plugins.PluginsUtils;
-import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.util.HashMap;
@@ -24,14 +20,12 @@ public class CreateArtifactoryServerStep extends AbstractStepImpl {
     private String url;
     private String username;
     private String password;
-    private final String credentialsId;
 
     @DataBoundConstructor
-    public CreateArtifactoryServerStep(String url, String username, String password, String credentialsId) {
+    public CreateArtifactoryServerStep(String url, String username, String password) {
         this.url = url;
         this.username = username;
         this.password = password;
-        this.credentialsId = credentialsId;
     }
 
     public String getUrl() {
@@ -46,10 +40,6 @@ public class CreateArtifactoryServerStep extends AbstractStepImpl {
         return password;
     }
 
-    public String getCredentialsId() {
-        return credentialsId;
-    }
-
     public static class Execution extends AbstractSynchronousStepExecution<ArtifactoryPipelineServer> {
         private static final long serialVersionUID = 1L;
 
@@ -62,7 +52,7 @@ public class CreateArtifactoryServerStep extends AbstractStepImpl {
             if (artifactoryUrl == null || artifactoryUrl == "") {
                 getContext().onFailure(new MissingArgumentException("Artifactory server URL is mandatory"));
             }
-            return new ArtifactoryPipelineServer(artifactoryUrl, step.getUsername(), step.getPassword(), step.getCredentialsId());
+            return new ArtifactoryPipelineServer(artifactoryUrl, step.getUsername(), step.getPassword()/*, step.getCredentialsId()*/);
         }
     }
 
@@ -97,15 +87,11 @@ public class CreateArtifactoryServerStep extends AbstractStepImpl {
             if (StringUtils.isNotEmpty(cStep.getPassword())) {
                 args.put("password", cStep.getPassword());
             }
-            if (StringUtils.isNotEmpty(cStep.getCredentialsId())) {
-                args.put("credentialsId", cStep.getCredentialsId());
-            }
-
             return args;
         }
 
-        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item project) {
-            return PluginsUtils.fillPluginCredentials(project);
-        }
+//        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item project) {
+//            return PluginsUtils.fillPluginCredentials(project);
+//        }
     }
 }

@@ -78,9 +78,17 @@ public class GenericUploadExecution extends AbstractStepExecutionImpl {
                 String repoKey = getRepositoryKey(file.getTarget());
                 pairs.put(file.getPattern(), getLocalPath(file.getTarget()));
 
-                List<Artifact> artifactsToDeploy = ws.act(new GenericArtifactsDeployer.FilesDeployerCallable(listener, pairs, server,
+                boolean isFlat = file.getFlat() != null ? org.eclipse.jgit.util.StringUtils.toBoolean(file.getFlat()) : false;
+                boolean isRecursive = file.getRecursive() != null ? org.eclipse.jgit.util.StringUtils.toBoolean(file.getRecursive()) : true;
+
+                GenericArtifactsDeployer.FilesDeployerCallable deployer = new GenericArtifactsDeployer.FilesDeployerCallable(listener, pairs, server,
                         server.getDeployerCredentialsConfig().getCredentials(), repoKey, propertiesToAdd,
-                        server.createProxyConfiguration(Jenkins.getInstance().proxy)));
+                        server.createProxyConfiguration(Jenkins.getInstance().proxy));
+                deployer.setPatternType(GenericArtifactsDeployer.FilesDeployerCallable.PatternType.WILDCARD);
+                deployer.setRecursive(isRecursive);
+                deployer.setFlat(isFlat);
+
+                List<Artifact> artifactsToDeploy = ws.act(deployer);
 
                 buildinfo.appendDeployedArtifacts(artifactsToDeploy);
                 PipelineUtils.getRunBuildInfo(build).appendDeployedArtifacts(artifactsToDeploy);

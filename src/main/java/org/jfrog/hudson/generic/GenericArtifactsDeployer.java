@@ -4,7 +4,10 @@ import com.google.common.collect.*;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Util;
-import hudson.model.*;
+import hudson.model.BuildListener;
+import hudson.model.Cause;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.remoting.VirtualChannel;
 import jenkins.model.Jenkins;
 import org.apache.commons.io.FilenameUtils;
@@ -125,6 +128,13 @@ public class GenericArtifactsDeployer {
         private Credentials credentials;
         private ArrayListMultimap<String, String> buildProperties;
         private ProxyConfiguration proxyConfiguration;
+        private boolean recursive;
+        private boolean flat;
+        private PatternType patternType = PatternType.ANT;
+
+        public enum PatternType {
+            ANT, WILDCARD
+        }
 
         public FilesDeployerCallable(TaskListener listener, Multimap<String, String> patternPairs,
                                      ArtifactoryServer server, Credentials credentials, String repositoryKey,
@@ -136,6 +146,18 @@ public class GenericArtifactsDeployer {
             this.repositoryKey = repositoryKey;
             this.buildProperties = buildProperties;
             this.proxyConfiguration = proxyConfiguration;
+        }
+
+        public void setRecursive(boolean recursive) {
+            this.recursive = recursive;
+        }
+
+        public void setFlat(boolean flat) {
+            this.flat = flat;
+        }
+
+        public void setPatternType(PatternType patternType) {
+            this.patternType = patternType;
         }
 
         public List<Artifact> invoke(File workspace, VirtualChannel channel) throws IOException, InterruptedException {
@@ -185,8 +207,14 @@ public class GenericArtifactsDeployer {
             for (Map.Entry<String, String> entry : patternPairs.entries()) {
                 String pattern = entry.getKey();
                 String targetPath = entry.getValue();
-                Multimap<String, File> publishingData = PublishedItemsHelper.buildPublishingData(workspace, pattern,
-                        targetPath);
+                Multimap<String, File> publishingData = null;
+
+                if (patternType == PatternType.ANT) {
+                    publishingData = PublishedItemsHelper.buildPublishingData(workspace, pattern, targetPath);
+                } else {
+                    publishingData = PublishedItemsHelper.wildCardBuildPublishingData(workspace, pattern, targetPath, flat, recursive);
+                }
+
                 if (publishingData != null) {
                     listener.getLogger().println(
                             "For pattern: " + pattern + " " + publishingData.size() + " artifacts were found");
@@ -204,7 +232,12 @@ public class GenericArtifactsDeployer {
             Set<DeployDetails> result = Sets.newHashSet();
             String targetPath = fileEntry.getKey();
             File artifactFile = fileEntry.getValue();
-            String path = PublishedItemsHelper.calculateTargetPath(targetPath, artifactFile);
+            String path;
+            if (patternType == PatternType.ANT) {
+                path = PublishedItemsHelper.calculateTargetPath(targetPath, artifactFile);
+            } else {
+                path = PublishedItemsHelper.wildcardCalculateTargetPath(targetPath, artifactFile);
+            }
             path = StringUtils.replace(path, "//", "/");
 
             // calculate the sha1 checksum that is not given by Jenkins and add it to the deploy artifactsToDeploy
@@ -224,5 +257,6 @@ public class GenericArtifactsDeployer {
 
             return result;
         }
+
     }
 }

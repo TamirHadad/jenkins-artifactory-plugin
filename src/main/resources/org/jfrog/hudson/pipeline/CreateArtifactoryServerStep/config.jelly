@@ -11,7 +11,9 @@
     <f:entry field="password" title="Password">
         <f:textbox/>
     </f:entry>
+   <!--
     <f:entry field="credentialsId" title="Credentials">
         <c:select/>
     </f:entry>
+    -->
 </j:jelly>
