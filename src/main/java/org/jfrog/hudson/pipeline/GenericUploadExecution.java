@@ -78,7 +78,7 @@ public class GenericUploadExecution extends AbstractStepExecutionImpl {
                 String repoKey = getRepositoryKey(file.getTarget());
                 pairs.put(file.getPattern(), getLocalPath(file.getTarget()));
 
-                boolean isFlat = file.getFlat() != null ? org.eclipse.jgit.util.StringUtils.toBoolean(file.getFlat()) : false;
+                boolean isFlat = file.getFlat() != null ? org.eclipse.jgit.util.StringUtils.toBoolean(file.getFlat()) : true;
                 boolean isRecursive = file.getRecursive() != null ? org.eclipse.jgit.util.StringUtils.toBoolean(file.getRecursive()) : true;
 
                 GenericArtifactsDeployer.FilesDeployerCallable deployer = new GenericArtifactsDeployer.FilesDeployerCallable(listener, pairs, server,
