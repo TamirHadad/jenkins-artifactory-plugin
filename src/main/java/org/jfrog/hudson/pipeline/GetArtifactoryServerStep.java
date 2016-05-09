@@ -74,7 +74,6 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
             new PrintStream(new FileOutputStream("tt"));
             artifactoryPipelineServer.setWs(ws);
             artifactoryPipelineServer.setContext(getContext());
-            artifactoryPipelineServer.setLogger(new PrintStream(new FileOutputStream("C:\\Users\\Tamirh\\.jenkins\\jobs\\pipelineProjectGit\\builds\\135\\5.log")));
             return artifactoryPipelineServer;
         }
 
