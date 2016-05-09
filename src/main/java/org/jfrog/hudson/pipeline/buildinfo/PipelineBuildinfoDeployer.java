@@ -9,6 +9,7 @@ import org.jfrog.build.api.builder.BuildInfoBuilder;
 import org.jfrog.build.api.builder.ModuleBuilder;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 import org.jfrog.hudson.AbstractBuildInfoDeployer;
+import org.jfrog.hudson.BuildInfoResultAction;
 import org.jfrog.hudson.pipeline.PipelineUtils;
 import org.jfrog.hudson.util.ExtractorUtils;
 
@@ -52,9 +53,17 @@ public class PipelineBuildinfoDeployer extends AbstractBuildInfoDeployer {
     }
 
     public void deploy() throws IOException {
-        String url = configurator.getArtifactoryServer().getUrl() + "/api/build";
-        listener.getLogger().println("Deploying build info to: " + url);
+        String artifactoryUrl = configurator.getArtifactoryServer().getUrl();
+        listener.getLogger().println("Deploying build info to: " + artifactoryUrl + "/api/build");
         client.sendBuildInfo(buildInfo);
+
+        String subRun = StringUtils.substringAfterLast(buildInfo.getNumber(), PipelineUtils.BUILD_INFO_DELIMITER);
+        if (subRun.equals("")) {
+            build.getActions().add(0, new BuildInfoResultAction(artifactoryUrl, build));
+        }
+        else {
+            build.getActions().add(0, new BuildInfoResultAction(artifactoryUrl, build, subRun));
+        }
     }
 
     private void createDeployDetailsAndAddToBuildInfo(List<Artifact> deployedArtifacts,

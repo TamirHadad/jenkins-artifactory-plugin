@@ -17,6 +17,7 @@ import java.util.Map;
  */
 public class PipelineUtils {
 
+    public static final String BUILD_INFO_DELIMITER = ".";
     private static int buildNumber = 0;
     private static int subBuildNumber = 0;
     private static Map<String, PipelineBuildinfo> jobBuildInfo = new HashMap<String, PipelineBuildinfo>();
@@ -60,7 +61,7 @@ public class PipelineUtils {
         List<ArtifactoryServer> servers = RepositoriesUtils.getArtifactoryServers();
         r.add("", "");
         for (ArtifactoryServer server : servers) {
-            r.add(server.getName() + ":" + server.getUrl(), server.getName());
+            r.add(server.getName() + PipelineUtils.BUILD_INFO_DELIMITER + server.getUrl(), server.getName());
         }
         return r;
     }
