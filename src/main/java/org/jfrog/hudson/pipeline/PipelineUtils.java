@@ -5,12 +5,10 @@ import hudson.util.ListBoxModel;
 import org.apache.commons.cli.MissingArgumentException;
 import org.jfrog.hudson.ArtifactoryServer;
 import org.jfrog.hudson.CredentialsConfig;
-import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildinfo;
+import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildInfo;
 import org.jfrog.hudson.util.RepositoriesUtils;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by romang on 4/24/16.
@@ -20,7 +18,6 @@ public class PipelineUtils {
     public static final String BUILD_INFO_DELIMITER = ".";
     private static int buildNumber = 0;
     private static int subBuildNumber = 0;
-    private static Map<String, PipelineBuildinfo> jobBuildInfo = new HashMap<String, PipelineBuildinfo>();
 
     /**
      * Prepares Artifactory server either from serverID or from ArtifactoryPipelineServer.
@@ -67,9 +64,9 @@ public class PipelineUtils {
     }
 
 
-    public static PipelineBuildinfo prepareBuildinfo(Run run, PipelineBuildinfo buildinfo){
+    public static PipelineBuildInfo prepareBuildinfo(Run run, PipelineBuildInfo buildinfo){
         if(buildinfo == null){
-            return new PipelineBuildinfo();
+            return new PipelineBuildInfo();
         }
 
         if(buildinfo.getNumber() == null){
@@ -86,19 +83,4 @@ public class PipelineUtils {
         }
         return PipelineUtils.buildNumber + ":" + String.valueOf(subBuildNumber++);
     }
-
-    public static PipelineBuildinfo getRunBuildInfo(Run run) {
-        if (!jobBuildInfo.containsKey(run.getId())) {
-            PipelineBuildinfo buildinfo = new PipelineBuildinfo();
-            buildinfo.setNumber(String.valueOf(run.getNumber()));
-            jobBuildInfo.put(run.getId(), buildinfo);
-        }
-
-        return jobBuildInfo.get(run.getId());
-    }
-
-    public static void removePipelineBuildInfo(Run run) {
-        jobBuildInfo.remove(run.getId());
-    }
-
 }

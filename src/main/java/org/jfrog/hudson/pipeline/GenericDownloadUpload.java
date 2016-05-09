@@ -3,7 +3,7 @@ package org.jfrog.hudson.pipeline;
 import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.lang.StringUtils;
 import org.jfrog.hudson.ArtifactoryServer;
-import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildinfo;
+import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildInfo;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,9 +15,9 @@ public class GenericDownloadUpload {
 
     private final ArtifactoryServer server;
     private final String json;
-    private PipelineBuildinfo buildinfo;
+    private PipelineBuildInfo buildinfo;
 
-    public GenericDownloadUpload(ArtifactoryPipelineServer artifactoryServer, String artifactoryServerID, String json, PipelineBuildinfo buildinfo) throws MissingArgumentException {
+    public GenericDownloadUpload(ArtifactoryPipelineServer artifactoryServer, String artifactoryServerID, String json, PipelineBuildInfo buildinfo) throws MissingArgumentException {
         this.server = PipelineUtils.prepareArtifactoryServer(artifactoryServerID, artifactoryServer);
         this.json = json;
         this.buildinfo = buildinfo;
@@ -31,7 +31,7 @@ public class GenericDownloadUpload {
         return json;
     }
 
-    public PipelineBuildinfo getBuildinfo() {
+    public PipelineBuildInfo getBuildinfo() {
         return buildinfo;
     }
 

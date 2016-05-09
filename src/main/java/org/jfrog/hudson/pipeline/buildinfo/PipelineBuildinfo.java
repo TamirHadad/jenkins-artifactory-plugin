@@ -16,33 +16,32 @@ import org.jfrog.hudson.util.CredentialManager;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by romang on 4/26/16.
  */
-public class PipelineBuildinfo implements Serializable {
+public class PipelineBuildInfo implements Serializable {
 
     private String name;
     private String number;
 
-    private List<Artifact> deployedArtifacts = new ArrayList<Artifact>();
+    private Map<Artifact, Artifact> deployedArtifacts = new HashMap<Artifact, Artifact>();
     private List<BuildDependency> buildDependencies = new ArrayList<BuildDependency>();
-    private List<Dependency> publishedDependencies = new ArrayList<Dependency>();
+    private Map<Dependency, Dependency> publishedDependencies = new HashMap<Dependency, Dependency>();
     private Map<String, String> envVars = new HashMap<String, String>();
     private Map<String, String> sysVars = new HashMap<String, String>();
 
-    public PipelineBuildinfo() {
+    public PipelineBuildInfo() {
     }
 
     public void appendDeployedArtifacts(List<Artifact> artifacts) {
         if (artifacts == null) {
             return;
         }
-        deployedArtifacts.addAll(artifacts);
+        for (Artifact artifact : artifacts) {
+            deployedArtifacts.put(artifact, artifact);
+        }
     }
 
     public void setName(String name) {
@@ -65,8 +64,9 @@ public class PipelineBuildinfo implements Serializable {
         if (dependencies == null) {
             return;
         }
-
-        publishedDependencies.addAll(dependencies);
+        for (Dependency dependency : dependencies) {
+            publishedDependencies.put(dependency, dependency);
+        }
     }
 
     public void appendEnvVariables(Map<String, String> vars, IncludeExcludePatterns patterns) {
@@ -98,7 +98,7 @@ public class PipelineBuildinfo implements Serializable {
         return number;
     }
 
-    public List<Artifact> getDeployedArtifacts() {
+    public Map<Artifact, Artifact> getDeployedArtifacts() {
         return deployedArtifacts;
     }
 
@@ -106,7 +106,7 @@ public class PipelineBuildinfo implements Serializable {
         return buildDependencies;
     }
 
-    public List<Dependency> getPublishedDependencies() {
+    public Map<Dependency, Dependency> getPublishedDependencies() {
         return publishedDependencies;
     }
 
@@ -116,6 +116,14 @@ public class PipelineBuildinfo implements Serializable {
 
     public Map<String, String> getSysVars() {
         return sysVars;
+    }
+
+    public void merge(PipelineBuildInfo other) {
+        this.deployedArtifacts.putAll(other.deployedArtifacts);
+        this.publishedDependencies.putAll(other.publishedDependencies);
+        this.buildDependencies.addAll(other.buildDependencies);
+        this.envVars.putAll(other.getEnvVars());
+        this.sysVars.putAll(other.getSysVars());
     }
 
     public PipelineBuildinfoDeployer createDeployer(Run build, TaskListener listener, ArtifactoryServer server) throws InterruptedException, NoSuchAlgorithmException, IOException {

@@ -7,7 +7,6 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.apache.commons.cli.MissingArgumentException;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
-import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousStepExecution;
 import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 import org.jfrog.build.extractor.clientConfiguration.IncludeExcludePatterns;
@@ -25,15 +24,15 @@ import java.util.Properties;
 public class CaptureVariablesStep /*extends AbstractStepImpl*/ {
 
     private final IncludeExcludePatterns patterns;
-    private PipelineBuildinfo buildinfo;
+    private PipelineBuildInfo buildinfo;
 
     @DataBoundConstructor
-    public CaptureVariablesStep(PipelineBuildinfo buildinfo, String includePatterns, String excludePatterns) throws MissingArgumentException {
+    public CaptureVariablesStep(PipelineBuildInfo buildinfo, String includePatterns, String excludePatterns) throws MissingArgumentException {
         this.buildinfo = buildinfo;
         this.patterns = new IncludeExcludePatterns(includePatterns, excludePatterns);
     }
 
-    public PipelineBuildinfo getBuildInfo() {
+    public PipelineBuildInfo getBuildInfo() {
         return buildinfo;
     }
 
@@ -56,10 +55,10 @@ public class CaptureVariablesStep /*extends AbstractStepImpl*/ {
         @Override
         protected Integer run() throws Exception {
 
-            PipelineBuildinfo buildinfo = step.getBuildInfo();
-            if (buildinfo == null) {
-                buildinfo = PipelineUtils.getRunBuildInfo(build);
-            }
+            PipelineBuildInfo buildinfo = step.getBuildInfo();
+//            if (buildinfo == null) {
+//                buildinfo = PipelineUtils.getRunBuildInfo(build);
+//            }
             EnvVars env = getContext().get(EnvVars.class);
             buildinfo.appendEnvVariables(env, step.getPatterns());
             Map<String, String> sysEnv = new HashMap<String, String>();

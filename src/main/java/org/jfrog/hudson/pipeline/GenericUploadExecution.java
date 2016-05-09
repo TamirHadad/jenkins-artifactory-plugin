@@ -14,6 +14,7 @@ import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepExecutionImpl;
+import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 import org.jfrog.build.api.Artifact;
 import org.jfrog.build.api.BuildInfoFields;
@@ -21,7 +22,9 @@ import org.jfrog.build.api.util.Log;
 import org.jfrog.hudson.ArtifactoryServer;
 import org.jfrog.hudson.action.ActionableHelper;
 import org.jfrog.hudson.generic.GenericArtifactsDeployer;
-import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildinfo;
+import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildInfo;
+import org.jfrog.hudson.pipeline.json.ArtifactoryDownloadUploadJson;
+import org.jfrog.hudson.pipeline.json.ArtifactoryFileJson;
 import org.jfrog.hudson.util.BuildUniqueIdentifierHelper;
 import org.jfrog.hudson.util.ExtractorUtils;
 import org.jfrog.hudson.util.JenkinsBuildInfoLog;
@@ -33,44 +36,41 @@ import java.util.List;
 /**
  * Created by romang on 4/24/16.
  */
-public class GenericUploadExecution extends AbstractStepExecutionImpl {
-    @StepContextParameter
+public class GenericUploadExecution {
     private transient FilePath ws;
-
-    @StepContextParameter
     private transient Run build;
-
-    @StepContextParameter
     private transient Launcher launcher;
-
-    @StepContextParameter
     private transient TaskListener listener;
-
-    @Inject(optional = true)
-    private transient GenericUploadStep step;
-
     private static final long serialVersionUID = 1L;
-
     private Log log;
-    private PipelineBuildinfo buildinfo;
+    private PipelineBuildInfo buildinfo;
+    private ArtifactoryServer server;
+    private StepContext context;
 
-    public boolean start() throws Exception {
-        log = new JenkinsBuildInfoLog(listener);
-        buildinfo = PipelineUtils.prepareBuildinfo(build, step.getBuildinfo());
+    public GenericUploadExecution(ArtifactoryServer server) {
+        this.server = server;
+    }
+
+    public PipelineBuildInfo execution(TaskListener listener, Launcher launcher, Run build, FilePath ws, PipelineBuildInfo buildInfo, String json, StepContext context) throws IOException {
+        this.listener = listener;
+        this.log = new JenkinsBuildInfoLog(listener);
+        this.build = build;
+        this.buildinfo = PipelineUtils.prepareBuildinfo(build, buildInfo);
+        this.ws = ws;
+        this.context = context;
 
         ObjectMapper mapper = new ObjectMapper();
-        ArtifactoryDownloadUploadJson uploadJson = mapper.readValue(step.getJson(), ArtifactoryDownloadUploadJson.class);
+        ArtifactoryDownloadUploadJson uploadJson = mapper.readValue(json, ArtifactoryDownloadUploadJson.class);
 
         uploadArtifacts(uploadJson);
 
-        // return buildinfo
-        getContext().onSuccess(buildinfo);
-        return false;
+        this.context.onSuccess(buildinfo);
+         return buildinfo;
     }
 
     private void uploadArtifacts(ArtifactoryDownloadUploadJson uploadJson) {
         try {
-            ArtifactoryServer server = step.getServer();
+            ArtifactoryServer server = this.server;
             for (ArtifactoryFileJson file : uploadJson.getFiles()) {
                 ArrayListMultimap<String, String> propertiesToAdd = getPropertiesMap(file.getProps());
                 Multimap<String, String> pairs = HashMultimap.create();
@@ -87,11 +87,8 @@ public class GenericUploadExecution extends AbstractStepExecutionImpl {
                 deployer.setPatternType(GenericArtifactsDeployer.FilesDeployerCallable.PatternType.WILDCARD);
                 deployer.setRecursive(isRecursive);
                 deployer.setFlat(isFlat);
-
                 List<Artifact> artifactsToDeploy = ws.act(deployer);
-
                 buildinfo.appendDeployedArtifacts(artifactsToDeploy);
-                PipelineUtils.getRunBuildInfo(build).appendDeployedArtifacts(artifactsToDeploy);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -121,7 +118,7 @@ public class GenericUploadExecution extends AbstractStepExecutionImpl {
             properties.put("build.parentName", ExtractorUtils.sanitizeBuildName(parent.getUpstreamProject()));
             properties.put("build.parentNumber", parent.getUpstreamBuild() + "");
         }
-        EnvVars env = getContext().get(EnvVars.class);
+        EnvVars env = context.get(EnvVars.class);
         String revision = ExtractorUtils.getVcsRevision(env);
         if (StringUtils.isNotBlank(revision)) {
             properties.put(BuildInfoFields.VCS_REVISION, revision);

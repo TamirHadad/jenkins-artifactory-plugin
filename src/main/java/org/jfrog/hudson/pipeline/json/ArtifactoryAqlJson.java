@@ -1,4 +1,4 @@
-package org.jfrog.hudson.pipeline;
+package org.jfrog.hudson.pipeline.json;
 
 import net.sf.json.JSONObject;
 import org.codehaus.jackson.annotate.JsonProperty;

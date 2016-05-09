@@ -1,6 +1,5 @@
 package org.jfrog.hudson.pipeline;
 
-import com.google.inject.Inject;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
@@ -8,8 +7,6 @@ import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.eclipse.jgit.util.StringUtils;
-import org.jenkinsci.plugins.workflow.steps.AbstractStepExecutionImpl;
-import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 import org.jfrog.build.api.Dependency;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.build.client.ProxyConfiguration;
@@ -20,7 +17,9 @@ import org.jfrog.build.extractor.clientConfiguration.util.WildcardDependenciesHe
 import org.jfrog.hudson.ArtifactoryServer;
 import org.jfrog.hudson.CredentialsConfig;
 import org.jfrog.hudson.generic.DependenciesDownloaderImpl;
-import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildinfo;
+import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildInfo;
+import org.jfrog.hudson.pipeline.json.ArtifactoryDownloadUploadJson;
+import org.jfrog.hudson.pipeline.json.ArtifactoryFileJson;
 import org.jfrog.hudson.util.JenkinsBuildInfoLog;
 
 import javax.annotation.Nonnull;
@@ -30,38 +29,31 @@ import java.util.List;
 /**
  * Created by romang on 4/19/16.
  */
-public class GenericDownloadExecution extends AbstractStepExecutionImpl {
-    @StepContextParameter
+public class GenericDownloadExecution {
     private transient FilePath ws;
-
-    @StepContextParameter
     private transient Run build;
-
-    @StepContextParameter
     private transient Launcher launcher;
-
-    @StepContextParameter
     private transient TaskListener listener;
-
-    @Inject(optional = true)
-    private transient GenericDownloadStep step;
-
     private static final long serialVersionUID = 1L;
-
-    private PipelineBuildinfo buildinfo;
-
+    private PipelineBuildInfo buildInfo;
+    private ArtifactoryServer server;
     private Log log;
 
-    public boolean start() throws Exception {
-        log = new JenkinsBuildInfoLog(listener);
-        buildinfo = PipelineUtils.prepareBuildinfo(build, step.getBuildinfo());
+    public GenericDownloadExecution(ArtifactoryServer server) {
+        this.server = server;
+    }
+
+    public PipelineBuildInfo execution(TaskListener listener, Launcher launcher, Run build, FilePath ws, PipelineBuildInfo buildInfo, String json) throws IOException {
+
+        this.log = new JenkinsBuildInfoLog(listener);
+        this.buildInfo = PipelineUtils.prepareBuildinfo(build, buildInfo);
+        this.ws = ws;
 
         ObjectMapper mapper = new ObjectMapper();
-        ArtifactoryDownloadUploadJson downloadJson = mapper.readValue(step.getJson(), ArtifactoryDownloadUploadJson.class);
+        ArtifactoryDownloadUploadJson downloadJson = mapper.readValue(json, ArtifactoryDownloadUploadJson.class);
         downloadArtifacts(downloadJson);
 
-        getContext().onSuccess(buildinfo);
-        return false;
+        return this.buildInfo;
     }
 
     private void downloadArtifacts(ArtifactoryDownloadUploadJson downloadJson) {
@@ -75,7 +67,6 @@ public class GenericDownloadExecution extends AbstractStepExecutionImpl {
             proxyConfiguration.password = proxy.getPassword();
         }
 
-        ArtifactoryServer server = step.getServer();
         CredentialsConfig preferredResolver = server.getDeployerCredentialsConfig();
         ArtifactoryDependenciesClient dependenciesClient = server.createArtifactoryDependenciesClient(
                 preferredResolver.provideUsername(), preferredResolver.providePassword(), proxyConfiguration,
@@ -105,9 +96,7 @@ public class GenericDownloadExecution extends AbstractStepExecutionImpl {
     private void download(String downloadStr, DependenciesHelper helper) {
         try {
             List<Dependency> resolvedDependencies = helper.retrievePublishedDependencies(downloadStr);
-
-            buildinfo.appendPublishedDependencies(resolvedDependencies);
-            PipelineUtils.getRunBuildInfo(build).appendPublishedDependencies(resolvedDependencies);
+            buildInfo.appendPublishedDependencies(resolvedDependencies);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {

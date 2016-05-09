@@ -2,6 +2,7 @@ package org.jfrog.hudson.pipeline;
 
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jfrog.hudson.pipeline.json.ArtifactoryDownloadUploadJson;
 import org.junit.Test;
 
 import java.io.IOException;

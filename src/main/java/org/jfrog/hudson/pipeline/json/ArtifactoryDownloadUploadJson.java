@@ -1,4 +1,4 @@
-package org.jfrog.hudson.pipeline;
+package org.jfrog.hudson.pipeline.json;
 
 /**
  * Created by romang on 4/20/16.

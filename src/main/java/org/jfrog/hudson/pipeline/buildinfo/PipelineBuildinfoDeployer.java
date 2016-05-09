@@ -16,6 +16,7 @@ import org.jfrog.hudson.util.ExtractorUtils;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -30,7 +31,7 @@ public class PipelineBuildinfoDeployer extends AbstractBuildInfoDeployer {
     private Build buildInfo;
 
     public PipelineBuildinfoDeployer(ArtifactoryPipelineConfigurator configurator, ArtifactoryBuildInfoClient client
-            , Run build, TaskListener listener, PipelineBuildinfo pipelineBuildinfo) throws IOException, InterruptedException, NoSuchAlgorithmException {
+            , Run build, TaskListener listener, PipelineBuildInfo pipelineBuildinfo) throws IOException, InterruptedException, NoSuchAlgorithmException {
         super(configurator, build, listener, client);
         this.configurator = configurator;
         this.build = build;
@@ -38,7 +39,7 @@ public class PipelineBuildinfoDeployer extends AbstractBuildInfoDeployer {
         this.sysVars = pipelineBuildinfo.getSysVars();
         this.buildInfo = createBuildInfo("Pipeline", "Pipeline", BuildType.GENERIC);
 
-        createDeployDetailsAndAddToBuildInfo(pipelineBuildinfo.getDeployedArtifacts(), pipelineBuildinfo.getPublishedDependencies());
+        createDeployDetailsAndAddToBuildInfo(new ArrayList<Artifact>(pipelineBuildinfo.getDeployedArtifacts().values()), new ArrayList<Dependency>(pipelineBuildinfo.getPublishedDependencies().values()));
         buildInfo.setBuildDependencies(pipelineBuildinfo.getBuildDependencies());
 
         if (StringUtils.isNotEmpty(pipelineBuildinfo.getName())) {
