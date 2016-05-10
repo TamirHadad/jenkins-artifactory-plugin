@@ -45,32 +45,19 @@ public class PipelineBuildinfoDeployer extends AbstractBuildInfoDeployer {
         if (StringUtils.isNotEmpty(pipelineBuildinfo.getName())) {
             buildInfo.setName(pipelineBuildinfo.getName());
         }
-
-        if (StringUtils.isNotEmpty(pipelineBuildinfo.getNumber())) {
-            buildInfo.setNumber(pipelineBuildinfo.getNumber());
-        } else {
-            buildInfo.setNumber(PipelineUtils.getBuildNumber(buildInfo.getNumber()));
-        }
     }
 
     public void deploy() throws IOException {
         String artifactoryUrl = configurator.getArtifactoryServer().getUrl();
         listener.getLogger().println("Deploying build info to: " + artifactoryUrl + "/api/build");
         client.sendBuildInfo(buildInfo);
-
-        String subRun = StringUtils.substringAfterLast(buildInfo.getNumber(), PipelineUtils.BUILD_INFO_DELIMITER);
-        if (subRun.equals("")) {
-            build.getActions().add(0, new BuildInfoResultAction(artifactoryUrl, build));
-        }
-        else {
-            build.getActions().add(0, new BuildInfoResultAction(artifactoryUrl, build, subRun));
-        }
+        build.getActions().add(0, new BuildInfoResultAction(artifactoryUrl, build));
     }
 
     private void createDeployDetailsAndAddToBuildInfo(List<Artifact> deployedArtifacts,
                                                       List<Dependency> publishedDependencies) throws IOException, NoSuchAlgorithmException {
         ModuleBuilder moduleBuilder = new ModuleBuilder()
-                .id(ExtractorUtils.sanitizeBuildName(build.getParent().getDisplayName()) + ":" + build.getNumber())
+                .id(ExtractorUtils.sanitizeBuildName(build.getParent().getDisplayName()))
                 .artifacts(deployedArtifacts);
         moduleBuilder.dependencies(publishedDependencies);
         buildInfo.setModules(Lists.newArrayList(moduleBuilder.build()));

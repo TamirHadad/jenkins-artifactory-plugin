@@ -47,25 +47,22 @@ public class GenericUploadExecution {
     private ArtifactoryServer server;
     private StepContext context;
 
-    public GenericUploadExecution(ArtifactoryServer server) {
+    public GenericUploadExecution(ArtifactoryServer server, TaskListener listener, Run build, FilePath ws, PipelineBuildInfo buildInfo, StepContext context) {
         this.server = server;
-    }
-
-    public PipelineBuildInfo execution(TaskListener listener, Launcher launcher, Run build, FilePath ws, PipelineBuildInfo buildInfo, String json, StepContext context) throws IOException {
         this.listener = listener;
         this.log = new JenkinsBuildInfoLog(listener);
         this.build = build;
         this.buildinfo = PipelineUtils.prepareBuildinfo(build, buildInfo);
         this.ws = ws;
         this.context = context;
+    }
 
+    public PipelineBuildInfo execution(String json) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         ArtifactoryDownloadUploadJson uploadJson = mapper.readValue(json, ArtifactoryDownloadUploadJson.class);
-
         uploadArtifacts(uploadJson);
-
         this.context.onSuccess(buildinfo);
-         return buildinfo;
+        return buildinfo;
     }
 
     private void uploadArtifacts(ArtifactoryDownloadUploadJson uploadJson) {

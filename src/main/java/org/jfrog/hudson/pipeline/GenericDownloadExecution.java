@@ -39,16 +39,14 @@ public class GenericDownloadExecution {
     private ArtifactoryServer server;
     private Log log;
 
-    public GenericDownloadExecution(ArtifactoryServer server) {
+    public GenericDownloadExecution(ArtifactoryServer server, TaskListener listener, Run build, FilePath ws, PipelineBuildInfo buildInfo) {
         this.server = server;
-    }
-
-    public PipelineBuildInfo execution(TaskListener listener, Launcher launcher, Run build, FilePath ws, PipelineBuildInfo buildInfo, String json) throws IOException {
-
         this.log = new JenkinsBuildInfoLog(listener);
         this.buildInfo = PipelineUtils.prepareBuildinfo(build, buildInfo);
         this.ws = ws;
+    }
 
+    public PipelineBuildInfo execution(String json) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         ArtifactoryDownloadUploadJson downloadJson = mapper.readValue(json, ArtifactoryDownloadUploadJson.class);
         downloadArtifacts(downloadJson);

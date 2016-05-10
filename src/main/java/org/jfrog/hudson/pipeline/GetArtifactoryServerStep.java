@@ -71,7 +71,6 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
             artifactoryPipelineServer.setLauncher(launcher);
             artifactoryPipelineServer.setListener(listener);
             artifactoryPipelineServer.setLogger(new PrintStream(listener.getLogger()));
-            new PrintStream(new FileOutputStream("tt"));
             artifactoryPipelineServer.setWs(ws);
             artifactoryPipelineServer.setContext(getContext());
             return artifactoryPipelineServer;

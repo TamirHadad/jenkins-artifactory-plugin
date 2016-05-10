@@ -1,8 +1,10 @@
 package org.jfrog.hudson.pipeline.buildinfo;
 
+import hudson.EnvVars;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jfrog.build.api.Artifact;
 import org.jfrog.build.api.Dependency;
 import org.jfrog.build.api.dependency.BuildDependency;
@@ -124,6 +126,19 @@ public class PipelineBuildInfo implements Serializable {
         this.buildDependencies.addAll(other.buildDependencies);
         this.envVars.putAll(other.getEnvVars());
         this.sysVars.putAll(other.getSysVars());
+    }
+
+    public void captureVariables(StepContext context) throws Exception {
+        EnvVars env = context.get(EnvVars.class);
+        envVars.putAll(env);
+        Map<String, String> sysEnv = new HashMap<String, String>();
+        Properties systemProperties = System.getProperties();
+        Enumeration<?> enumeration = systemProperties.propertyNames();
+        while (enumeration.hasMoreElements()) {
+            String propertyKey = (String) enumeration.nextElement();
+            sysEnv.put(propertyKey, systemProperties.getProperty(propertyKey));
+        }
+        sysVars.putAll(sysEnv);
     }
 
     public PipelineBuildinfoDeployer createDeployer(Run build, TaskListener listener, ArtifactoryServer server) throws InterruptedException, NoSuchAlgorithmException, IOException {

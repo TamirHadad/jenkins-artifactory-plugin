@@ -47,10 +47,6 @@ public class BuildInfoResultAction implements BuildBadgeAction {
         url = generateUrl(artifactoryRootUrl, build);
     }
 
-    public BuildInfoResultAction(String artifactoryRootUrl, Run build, String subRun) {
-        url = generateUrl(artifactoryRootUrl, build, subRun);
-    }
-
     public String getIconFileName() {
         return "/plugin/artifactory/images/artifactory-icon.png";
     }
@@ -71,9 +67,5 @@ public class BuildInfoResultAction implements BuildBadgeAction {
     private String generateUrl(String artifactoryRootUrl, Run build) {
         return artifactoryRootUrl + "/webapp/builds/" + Util.rawEncode(BuildUniqueIdentifierHelper.getBuildName(build)) + "/"
                 + Util.rawEncode(BuildUniqueIdentifierHelper.getBuildNumber(build));
-    }
-
-    private String generateUrl(String artifactoryRootUrl, Run build, String subBuild) {
-        return generateUrl(artifactoryRootUrl, build) + Util.rawEncode(PipelineUtils.BUILD_INFO_DELIMITER + subBuild);
     }
 }

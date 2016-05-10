@@ -47,13 +47,15 @@ public class ArtifactoryPipelineServer implements Serializable {
     }
 
     public PipelineBuildInfo download(String json) throws Exception{
-        this.listener = new hudson.util.StreamTaskListener(new PrintStream(new FileOutputStream(build.getLogFile())));
-        PipelineBuildInfo buildInfo = new GenericDownloadExecution(PipelineUtils.prepareArtifactoryServer(null, this)).execution(this.listener, this.launcher, this.build, this.ws, null, json);
+//        this.listener = new hudson.util.StreamTaskListener(new PrintStream(new FileOutputStream(build.getLogFile())));
+        this.listener = hudson.util.StreamTaskListener.fromStdout();
+        PipelineBuildInfo buildInfo = new GenericDownloadExecution(PipelineUtils.prepareArtifactoryServer(null, this), this.listener, this.build, this.ws, null).execution(json);
         return buildInfo;
     }
 
     public PipelineBuildInfo upload(String json) throws Exception{
-        PipelineBuildInfo buildInfo = new GenericUploadExecution(PipelineUtils.prepareArtifactoryServer(null, this)).execution(this.listener, this.launcher, this.build, this.ws, null, json, context);
+        PipelineBuildInfo buildInfo = new GenericUploadExecution(PipelineUtils.prepareArtifactoryServer(null, this), this.listener, this.build, this.ws, null, context).execution(json);
+        buildInfo.captureVariables(context);
         return buildInfo;
     }
 
