@@ -15,6 +15,7 @@ import org.jfrog.hudson.util.ExtractorUtils;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -22,7 +23,7 @@ import java.util.Map;
 /**
  * Created by romang on 4/25/16.
  */
-public class PipelineBuildinfoDeployer extends AbstractBuildInfoDeployer {
+public class PipelineBuildInfoDeployer extends AbstractBuildInfoDeployer {
 
     private final Run build;
     private final Map<String, String> sysVars;
@@ -30,7 +31,7 @@ public class PipelineBuildinfoDeployer extends AbstractBuildInfoDeployer {
     private ArtifactoryPipelineConfigurator configurator;
     private Build buildInfo;
 
-    public PipelineBuildinfoDeployer(ArtifactoryPipelineConfigurator configurator, ArtifactoryBuildInfoClient client
+    public PipelineBuildInfoDeployer(ArtifactoryPipelineConfigurator configurator, ArtifactoryBuildInfoClient client
             , Run build, TaskListener listener, PipelineBuildInfo pipelineBuildinfo) throws IOException, InterruptedException, NoSuchAlgorithmException {
         super(configurator, build, listener, client);
         this.configurator = configurator;

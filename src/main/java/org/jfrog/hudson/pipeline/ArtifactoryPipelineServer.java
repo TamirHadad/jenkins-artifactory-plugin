@@ -1,20 +1,19 @@
 package org.jfrog.hudson.pipeline;
 
+import com.google.inject.Inject;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.StreamTaskListener;
-import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildInfo;
-import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildinfoDeployer;
-
-import java.io.FileOutputStream;
-import java.io.PrintStream;
-import java.util.logging.Logger;
+import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildInfoDeployer;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by romang on 4/21/16.
@@ -31,7 +30,6 @@ public class ArtifactoryPipelineServer implements Serializable {
     private transient Run build;
     private transient StepContext context;
     private transient TaskListener listener;
-    private transient PrintStream logger = null;
 
     public ArtifactoryPipelineServer(String artifactoryServerName, String url, String username, String password) {
         serverName = artifactoryServerName;
@@ -45,23 +43,41 @@ public class ArtifactoryPipelineServer implements Serializable {
         this.username = username;
         this.password = password;
     }
-
-    public PipelineBuildInfo download(String json) throws Exception{
-//        this.listener = new hudson.util.StreamTaskListener(new PrintStream(new FileOutputStream(build.getLogFile())));
-        this.listener = hudson.util.StreamTaskListener.fromStdout();
-        PipelineBuildInfo buildInfo = new GenericDownloadExecution(PipelineUtils.prepareArtifactoryServer(null, this), this.listener, this.build, this.ws, null).execution(json);
-        return buildInfo;
-    }
-
-    public PipelineBuildInfo upload(String json) throws Exception{
-        PipelineBuildInfo buildInfo = new GenericUploadExecution(PipelineUtils.prepareArtifactoryServer(null, this), this.listener, this.build, this.ws, null, context).execution(json);
+    @Inject
+    public PipelineBuildInfo download(String json) throws Exception {
+        TaskListener listener = getBuildListener();
+        PipelineBuildInfo buildInfo = new GenericDownloadExecution(PipelineUtils.prepareArtifactoryServer(null, this), listener, this.build, this.ws, null).execution(json);
         buildInfo.captureVariables(context);
         return buildInfo;
     }
 
-    public void publishBuildInfo(PipelineBuildInfo buildInfo) throws Exception{
-        PipelineBuildinfoDeployer deployer = buildInfo.createDeployer(build, listener, PipelineUtils.prepareArtifactoryServer(null, this));
+    public PipelineBuildInfo upload(String json) throws Exception {
+        TaskListener listener = getBuildListener();
+        PipelineBuildInfo buildInfo = new GenericUploadExecution(PipelineUtils.prepareArtifactoryServer(null, this), listener, this.build, this.ws, null, context).execution(json);
+        buildInfo.captureVariables(context);
+        return buildInfo;
+    }
+
+    public void publishBuildInfo(PipelineBuildInfo buildInfo) throws Exception {
+        TaskListener listener = getBuildListener();
+        PipelineBuildInfoDeployer deployer = buildInfo.createDeployer(build, listener, PipelineUtils.prepareArtifactoryServer(null, this));
         deployer.deploy();
+    }
+
+    private TaskListener getBuildListener () {
+        TaskListener listener;
+        try{
+            Field listenerField = build.getClass().getDeclaredField("listener");
+            listenerField.setAccessible(true);
+            listener = (StreamTaskListener) listenerField.get(build);
+        } catch (NoSuchFieldException e) {
+            Logger.getLogger(ArtifactoryPipelineServer.class.getName()).log(Level.FINE, "couldn't create listener");
+            listener = this.listener;
+        } catch (IllegalAccessException e) {
+            Logger.getLogger(ArtifactoryPipelineServer.class.getName()).log(Level.FINE, "couldn't create listener");
+            listener = this.listener;
+        }
+        return listener;
     }
 
     public String getServerName() {
@@ -108,10 +124,6 @@ public class ArtifactoryPipelineServer implements Serializable {
         this.listener = listener;
     }
 
-    public void setLogger(PrintStream out) {
-        this.logger = out;
-    }
-
     public Launcher getLauncher() {
         return launcher;
     }
@@ -143,6 +155,5 @@ public class ArtifactoryPipelineServer implements Serializable {
     public void setContext(StepContext context) {
         this.context = context;
     }
-
 
 }

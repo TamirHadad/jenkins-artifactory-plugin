@@ -50,7 +50,6 @@ public class GenericDownloadExecution {
         ObjectMapper mapper = new ObjectMapper();
         ArtifactoryDownloadUploadJson downloadJson = mapper.readValue(json, ArtifactoryDownloadUploadJson.class);
         downloadArtifacts(downloadJson);
-
         return this.buildInfo;
     }
 

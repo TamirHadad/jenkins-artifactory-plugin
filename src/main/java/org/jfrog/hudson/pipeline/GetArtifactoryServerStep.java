@@ -3,12 +3,12 @@ package org.jfrog.hudson.pipeline;
 import com.google.inject.Inject;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
 import org.acegisecurity.acls.NotFoundException;
 import org.apache.commons.cli.MissingArgumentException;
+import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousStepExecution;
@@ -16,9 +16,6 @@ import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 import org.jfrog.hudson.ArtifactoryServer;
 import org.jfrog.hudson.util.RepositoriesUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.io.FileOutputStream;
-import java.io.PrintStream;
 
 /**
  * Created by romang on 4/21/16.
@@ -38,9 +35,6 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
     public static class Execution extends AbstractSynchronousStepExecution<ArtifactoryPipelineServer> {
 
         @StepContextParameter
-        private transient Launcher launcher;
-
-        @StepContextParameter
         private transient FilePath ws;
 
         @StepContextParameter
@@ -48,7 +42,6 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
 
         @StepContextParameter
         private transient TaskListener listener;
-
 
         @Inject(optional = true)
         private transient GetArtifactoryServerStep step;
@@ -68,9 +61,7 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
             ArtifactoryPipelineServer artifactoryPipelineServer = new ArtifactoryPipelineServer(artifactoryServerID, server.getUrl(),
                     server.getResolvingCredentialsConfig().getUsername(), server.getResolvingCredentialsConfig().getPassword());
             artifactoryPipelineServer.setBuild(build);
-            artifactoryPipelineServer.setLauncher(launcher);
             artifactoryPipelineServer.setListener(listener);
-            artifactoryPipelineServer.setLogger(new PrintStream(listener.getLogger()));
             artifactoryPipelineServer.setWs(ws);
             artifactoryPipelineServer.setContext(getContext());
             return artifactoryPipelineServer;
