@@ -1,4 +1,4 @@
-package org.jfrog.hudson.pipeline.buildinfo;
+package org.jfrog.hudson.pipeline;
 
 import hudson.EnvVars;
 import hudson.model.Run;
@@ -27,6 +27,7 @@ public class PipelineBuildInfo implements Serializable {
 
     private String name;
     private String number;
+    private Date date;
 
     private Map<Artifact, Artifact> deployedArtifacts = new HashMap<Artifact, Artifact>();
     private List<BuildDependency> buildDependencies = new ArrayList<BuildDependency>();
@@ -54,7 +55,24 @@ public class PipelineBuildInfo implements Serializable {
         this.number = number;
     }
 
-    public void appendBuildDependencies(List<BuildDependency> dependencies) {
+
+    public String getName() {
+        return name;
+    }
+
+    public String getNumber() {
+        return number;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    protected void appendBuildDependencies(List<BuildDependency> dependencies) {
         if (dependencies == null) {
             return;
         }
@@ -62,7 +80,7 @@ public class PipelineBuildInfo implements Serializable {
         buildDependencies.addAll(dependencies);
     }
 
-    public void appendPublishedDependencies(List<Dependency> dependencies) {
+    protected void appendPublishedDependencies(List<Dependency> dependencies) {
         if (dependencies == null) {
             return;
         }
@@ -71,11 +89,11 @@ public class PipelineBuildInfo implements Serializable {
         }
     }
 
-    public void appendEnvVariables(Map<String, String> vars, IncludeExcludePatterns patterns) {
+    protected void appendEnvVariables(Map<String, String> vars, IncludeExcludePatterns patterns) {
         appendVariables(envVars, vars, patterns);
     }
 
-    public void appendSysVariables(Map<String, String> vars, IncludeExcludePatterns patterns) {
+    protected void appendSysVariables(Map<String, String> vars, IncludeExcludePatterns patterns) {
         appendVariables(sysVars, vars, patterns);
     }
 
@@ -92,35 +110,27 @@ public class PipelineBuildInfo implements Serializable {
         }
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getNumber() {
-        return number;
-    }
-
-    public Map<Artifact, Artifact> getDeployedArtifacts() {
+    protected Map<Artifact, Artifact> getDeployedArtifacts() {
         return deployedArtifacts;
     }
 
-    public List<BuildDependency> getBuildDependencies() {
+    protected List<BuildDependency> getBuildDependencies() {
         return buildDependencies;
     }
 
-    public Map<Dependency, Dependency> getPublishedDependencies() {
+    protected Map<Dependency, Dependency> getPublishedDependencies() {
         return publishedDependencies;
     }
 
-    public Map<String, String> getEnvVars() {
+    protected Map<String, String> getEnvVars() {
         return envVars;
     }
 
-    public Map<String, String> getSysVars() {
+    protected Map<String, String> getSysVars() {
         return sysVars;
     }
 
-    public void merge(PipelineBuildInfo other) {
+    public void append(PipelineBuildInfo other) {
         this.deployedArtifacts.putAll(other.deployedArtifacts);
         this.publishedDependencies.putAll(other.publishedDependencies);
         this.buildDependencies.addAll(other.buildDependencies);
@@ -128,7 +138,7 @@ public class PipelineBuildInfo implements Serializable {
         this.sysVars.putAll(other.getSysVars());
     }
 
-    public void captureVariables(StepContext context) throws Exception {
+    protected void captureVariables(StepContext context) throws Exception {
         EnvVars env = context.get(EnvVars.class);
         envVars.putAll(env);
         Map<String, String> sysEnv = new HashMap<String, String>();
@@ -141,12 +151,12 @@ public class PipelineBuildInfo implements Serializable {
         sysVars.putAll(sysEnv);
     }
 
-    public PipelineBuildinfoDeployer createDeployer(Run build, TaskListener listener, ArtifactoryServer server) throws InterruptedException, NoSuchAlgorithmException, IOException {
+    protected PipelineBuildInfoDeployer createDeployer(Run build, TaskListener listener, ArtifactoryServer server) throws InterruptedException, NoSuchAlgorithmException, IOException {
         ArtifactoryPipelineConfigurator config = new ArtifactoryPipelineConfigurator(server);
         CredentialsConfig preferredDeployer = CredentialManager.getPreferredDeployer(config, server);
         ArtifactoryBuildInfoClient client = server.createArtifactoryClient(preferredDeployer.provideUsername(),
                 preferredDeployer.providePassword(), server.createProxyConfiguration(Jenkins.getInstance().proxy));
 
-        return new PipelineBuildinfoDeployer(config, client, build, listener, this);
+        return new PipelineBuildInfoDeployer(config, client, build, listener, this);
     }
 }

@@ -1,4 +1,4 @@
-package org.jfrog.hudson.pipeline.buildinfo;
+package org.jfrog.hudson.pipeline;
 
 import org.jfrog.hudson.ArtifactoryServer;
 import org.jfrog.hudson.BuildInfoAwareConfigurator;

@@ -3,7 +3,6 @@ package org.jfrog.hudson.pipeline;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.inject.Inject;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -13,16 +12,13 @@ import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jenkinsci.plugins.workflow.steps.AbstractStepExecutionImpl;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
-import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 import org.jfrog.build.api.Artifact;
 import org.jfrog.build.api.BuildInfoFields;
 import org.jfrog.build.api.util.Log;
 import org.jfrog.hudson.ArtifactoryServer;
 import org.jfrog.hudson.action.ActionableHelper;
 import org.jfrog.hudson.generic.GenericArtifactsDeployer;
-import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildInfo;
 import org.jfrog.hudson.pipeline.json.ArtifactoryDownloadUploadJson;
 import org.jfrog.hudson.pipeline.json.ArtifactoryFileJson;
 import org.jfrog.hudson.util.BuildUniqueIdentifierHelper;
@@ -61,7 +57,6 @@ public class GenericUploadExecution {
         ObjectMapper mapper = new ObjectMapper();
         ArtifactoryDownloadUploadJson uploadJson = mapper.readValue(json, ArtifactoryDownloadUploadJson.class);
         uploadArtifacts(uploadJson);
-        this.context.onSuccess(buildinfo);
         return buildinfo;
     }
 

@@ -1,4 +1,4 @@
-package org.jfrog.hudson.pipeline.buildinfo;
+package org.jfrog.hudson.pipeline;
 
 import com.google.common.collect.Lists;
 import hudson.model.Run;
@@ -10,12 +10,10 @@ import org.jfrog.build.api.builder.ModuleBuilder;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 import org.jfrog.hudson.AbstractBuildInfoDeployer;
 import org.jfrog.hudson.BuildInfoResultAction;
-import org.jfrog.hudson.pipeline.PipelineUtils;
 import org.jfrog.hudson.util.ExtractorUtils;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -39,6 +37,10 @@ public class PipelineBuildInfoDeployer extends AbstractBuildInfoDeployer {
         this.envVars = pipelineBuildinfo.getEnvVars();
         this.sysVars = pipelineBuildinfo.getSysVars();
         this.buildInfo = createBuildInfo("Pipeline", "Pipeline", BuildType.GENERIC);
+
+        if(pipelineBuildinfo.getDate() != null) {
+            this.buildInfo.setStartedDate(pipelineBuildinfo.getDate());
+        }
 
         createDeployDetailsAndAddToBuildInfo(new ArrayList<Artifact>(pipelineBuildinfo.getDeployedArtifacts().values()), new ArrayList<Dependency>(pipelineBuildinfo.getPublishedDependencies().values()));
         buildInfo.setBuildDependencies(pipelineBuildinfo.getBuildDependencies());

@@ -5,7 +5,6 @@ import hudson.util.ListBoxModel;
 import org.apache.commons.cli.MissingArgumentException;
 import org.jfrog.hudson.ArtifactoryServer;
 import org.jfrog.hudson.CredentialsConfig;
-import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildInfo;
 import org.jfrog.hudson.util.RepositoriesUtils;
 
 import java.util.List;
@@ -52,7 +51,6 @@ public class PipelineUtils {
         return server;
     }
 
-
     public static ListBoxModel getServerListBox() {
         ListBoxModel r = new ListBoxModel();
         List<ArtifactoryServer> servers = RepositoriesUtils.getArtifactoryServers();
@@ -63,15 +61,14 @@ public class PipelineUtils {
         return r;
     }
 
-
-    public static PipelineBuildInfo prepareBuildinfo(Run run, PipelineBuildInfo buildinfo){
-        if(buildinfo == null){
+    public static PipelineBuildInfo prepareBuildinfo(Run run, PipelineBuildInfo buildinfo) {
+        if (buildinfo == null) {
             return new PipelineBuildInfo();
         }
 
-        if(buildinfo.getNumber() == null){
-            buildinfo.setNumber(getBuildNumber(String.valueOf(run.getNumber())));
-        }
+//        if(buildinfo.getNumber() == null){
+//            buildinfo.setNumber(getBuildNumber(String.valueOf(run.getNumber())));
+//        }
         return buildinfo;
     }
 

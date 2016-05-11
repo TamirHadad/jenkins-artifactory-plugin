@@ -1,14 +1,11 @@
 package org.jfrog.hudson.pipeline;
 
-import com.google.inject.Inject;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.StreamTaskListener;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
-import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildInfo;
-import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildInfoDeployer;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -43,17 +40,28 @@ public class ArtifactoryPipelineServer implements Serializable {
         this.username = username;
         this.password = password;
     }
-    @Inject
+
     public PipelineBuildInfo download(String json) throws Exception {
+        return download(json, null);
+    }
+
+    public PipelineBuildInfo download(String json, PipelineBuildInfo providedBuildInfo) throws Exception {
         TaskListener listener = getBuildListener();
-        PipelineBuildInfo buildInfo = new GenericDownloadExecution(PipelineUtils.prepareArtifactoryServer(null, this), listener, this.build, this.ws, null).execution(json);
-        buildInfo.captureVariables(context);
-        return buildInfo;
+        PipelineBuildInfo build = new GenericDownloadExecution(PipelineUtils.prepareArtifactoryServer(null, this), listener, this.build, this.ws, providedBuildInfo).execution(json);
+        build.captureVariables(context);
+        return build;
     }
 
     public PipelineBuildInfo upload(String json) throws Exception {
         TaskListener listener = getBuildListener();
         PipelineBuildInfo buildInfo = new GenericUploadExecution(PipelineUtils.prepareArtifactoryServer(null, this), listener, this.build, this.ws, null, context).execution(json);
+        buildInfo.captureVariables(context);
+        return buildInfo;
+    }
+
+    public PipelineBuildInfo upload(String json, PipelineBuildInfo providedBuildInfo) throws Exception {
+        TaskListener listener = getBuildListener();
+        PipelineBuildInfo buildInfo = new GenericUploadExecution(PipelineUtils.prepareArtifactoryServer(null, this), listener, this.build, this.ws, providedBuildInfo, context).execution(json);
         buildInfo.captureVariables(context);
         return buildInfo;
     }
@@ -64,9 +72,9 @@ public class ArtifactoryPipelineServer implements Serializable {
         deployer.deploy();
     }
 
-    private TaskListener getBuildListener () {
+    private TaskListener getBuildListener() {
         TaskListener listener;
-        try{
+        try {
             Field listenerField = build.getClass().getDeclaredField("listener");
             listenerField.setAccessible(true);
             listener = (StreamTaskListener) listenerField.get(build);

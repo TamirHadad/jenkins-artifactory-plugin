@@ -17,7 +17,6 @@ import org.jfrog.build.extractor.clientConfiguration.util.WildcardDependenciesHe
 import org.jfrog.hudson.ArtifactoryServer;
 import org.jfrog.hudson.CredentialsConfig;
 import org.jfrog.hudson.generic.DependenciesDownloaderImpl;
-import org.jfrog.hudson.pipeline.buildinfo.PipelineBuildInfo;
 import org.jfrog.hudson.pipeline.json.ArtifactoryDownloadUploadJson;
 import org.jfrog.hudson.pipeline.json.ArtifactoryFileJson;
 import org.jfrog.hudson.util.JenkinsBuildInfoLog;
