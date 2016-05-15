@@ -79,7 +79,8 @@ public class GenericDownloadExecution {
                 wildcardHelper.setFlatDownload(isFlat);
                 boolean isRecursive = file.getRecursive() != null ? StringUtils.toBoolean(file.getRecursive()) : true;
                 wildcardHelper.setRecursive(isRecursive);
-
+                String props = file.getProps() == null ? "" : file.getProps();
+                wildcardHelper.setProps(props);
                 download(file.getPattern(), wildcardHelper);
             }
             if (file.getAql() != null) {
