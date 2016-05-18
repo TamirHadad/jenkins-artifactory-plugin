@@ -53,4 +53,8 @@ public class PipelineBuildInfoAccessor {
     public void captureVariables(StepContext context) throws Exception {
         this.buildInfo.captureVariables(context);
     }
+
+    public void appendDeployedArtifacts(List<Artifact> artifacts) {
+        this.buildInfo.appendDeployedArtifacts(artifacts);
+    }
 }

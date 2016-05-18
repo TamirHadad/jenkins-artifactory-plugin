@@ -103,6 +103,9 @@ public class ArtifactoryBuilder extends GlobalConfiguration {
                 return FormValidation.error("Please set server ID");
             }
             List<ArtifactoryServer> artifactoryServers = RepositoriesUtils.getArtifactoryServers();
+            if (artifactoryServers == null) {
+                return FormValidation.ok();
+            }
             int countServersByValueAsName = 0;
             for (ArtifactoryServer server : artifactoryServers) {
                 if (server.getName().equals(value)) {
@@ -185,6 +188,9 @@ public class ArtifactoryBuilder extends GlobalConfiguration {
 
         private boolean isServerConfigurationError() {
             Map<String,String> serversName = new HashMap<String, String>();
+            if (artifactoryServers == null) {
+                return false;
+            }
             for (ArtifactoryServer server : artifactoryServers) {
                 String name = server.getName();
                 if (name == null || name == "" || serversName.get(name) != null) {

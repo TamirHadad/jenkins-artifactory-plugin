@@ -57,7 +57,11 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
             }
 
             List<ArtifactoryServer> artifactoryServers = new ArrayList<ArtifactoryServer>();
-            for (ArtifactoryServer server : RepositoriesUtils.getArtifactoryServers()) {
+            List<ArtifactoryServer> artifactoryConfiguredServers = RepositoriesUtils.getArtifactoryServers();
+            if (artifactoryConfiguredServers == null) {
+                getContext().onFailure(new NotFoundException("None Artifactory servers were configured"));
+            }
+            for (ArtifactoryServer server : artifactoryConfiguredServers) {
                 if (server.getName().equals(artifactoryServerID)) {
                     artifactoryServers.add(server);
                 }
@@ -71,7 +75,7 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
             ArtifactoryServer server = artifactoryServers.get(0);
             org.jfrog.hudson.pipeline.types.ArtifactoryServer artifactoryPipelineServer = new org.jfrog.hudson.pipeline.types.ArtifactoryServer(artifactoryServerID, server.getUrl(),
                     server.getResolvingCredentialsConfig().getUsername(), server.getResolvingCredentialsConfig().getPassword(),
-                    build, listener, ws, getContext());
+                    build, listener);
             return artifactoryPipelineServer;
         }
 

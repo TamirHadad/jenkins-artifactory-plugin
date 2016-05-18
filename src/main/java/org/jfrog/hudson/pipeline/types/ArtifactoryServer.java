@@ -1,11 +1,10 @@
 package org.jfrog.hudson.pipeline.types;
 
-import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.StreamTaskListener;
+import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
 import org.jenkinsci.plugins.workflow.cps.CpsScript;
-import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jfrog.hudson.pipeline.PipelineBuildInfoDeployer;
 import org.jfrog.hudson.pipeline.PipelineUtils;
 
@@ -25,42 +24,38 @@ public class ArtifactoryServer implements Serializable {
     private String username;
     private String password;
     private boolean bypassProxy;
-    private transient FilePath ws;
     private transient Run build;
-    private transient StepContext context;
     private transient TaskListener listener;
 
     private CpsScript cpsScript;
 
-    public ArtifactoryServer(String artifactoryServerName, String url, String username, String password, Run build, TaskListener listener, FilePath ws, StepContext context) {
+    public ArtifactoryServer(String artifactoryServerName, String url, String username, String password, Run build, TaskListener listener) {
         serverName = artifactoryServerName;
         this.url = url;
         this.username = username;
         this.password = password;
         this.build = build;
         this.listener = listener;
-        this.ws = ws;
-        this.context = context;
     }
 
-    public ArtifactoryServer(String url, String username, String password, Run build, TaskListener listener, FilePath ws, StepContext context) {
+    public ArtifactoryServer(String url, String username, String password, Run build, TaskListener listener) {
         this.url = url;
         this.username = username;
         this.password = password;
         this.build = build;
         this.listener = listener;
-        this.ws = ws;
-        this.context = context;
     }
 
     public void setCpsScript(CpsScript cpsScript) {
         this.cpsScript = cpsScript;
     }
 
+    @Whitelisted
     public BuildInfo download(String json) throws Exception {
         return download(json, null);
     }
 
+    @Whitelisted
     public BuildInfo download(String json, BuildInfo providedBuildInfo) throws Exception {
         Map<String, Object> stepVariables = new LinkedHashMap<String, Object>();
         stepVariables.put("json", json);
@@ -69,10 +64,12 @@ public class ArtifactoryServer implements Serializable {
         return (BuildInfo) cpsScript.invokeMethod("artifactoryDownload", stepVariables);
     }
 
+    @Whitelisted
     public BuildInfo upload(String json) throws Exception {
         return upload(json, null);
     }
 
+    @Whitelisted
     public BuildInfo upload(String json, BuildInfo providedBuildInfo) throws Exception {
         Map<String, Object> stepVariables = new LinkedHashMap<String, Object>();
         stepVariables.put("json", json);
@@ -81,6 +78,7 @@ public class ArtifactoryServer implements Serializable {
         return (BuildInfo) cpsScript.invokeMethod("artifactoryUpload", stepVariables);
     }
 
+    @Whitelisted
     public void publishBuildInfo(BuildInfo buildInfo) throws Exception {
         TaskListener listener = getBuildListener();
         PipelineBuildInfoDeployer deployer = buildInfo.createDeployer(build, listener, PipelineUtils.prepareArtifactoryServer(null, this));

@@ -5,16 +5,16 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
-import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
-import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousStepExecution;
-import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
+import org.jenkinsci.plugins.workflow.steps.*;
 import org.jfrog.hudson.pipeline.PipelineUtils;
 import org.jfrog.hudson.pipeline.executors.GenericDownloadExecutor;
 import org.jfrog.hudson.pipeline.types.BuildInfo;
 import org.jfrog.hudson.pipeline.types.PipelineBuildInfoAccessor;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.jfrog.hudson.pipeline.types.ArtifactoryServer;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class DownloadStep extends AbstractStepImpl {
 
@@ -79,6 +79,11 @@ public class DownloadStep extends AbstractStepImpl {
         @Override
         public String getDisplayName() {
             return "Download artifacts";
+        }
+
+        @Override
+        public Map<String, Object> defineArguments(Step step) throws UnsupportedOperationException {
+            return new HashMap<String, Object>();
         }
     }
 

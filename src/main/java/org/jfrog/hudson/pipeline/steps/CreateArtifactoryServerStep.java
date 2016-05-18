@@ -2,7 +2,6 @@ package org.jfrog.hudson.pipeline.steps;
 
 import com.google.inject.Inject;
 import hudson.Extension;
-import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.apache.commons.cli.MissingArgumentException;
@@ -19,13 +18,13 @@ import java.util.Map;
  */
 public class CreateArtifactoryServerStep extends AbstractStepImpl {
     private String url;
-    private String username;
+    private String userName;
     private String password;
 
     @DataBoundConstructor
-    public CreateArtifactoryServerStep(String url, String username, String password) {
+    public CreateArtifactoryServerStep(String url, String userName, String password) {
         this.url = url;
-        this.username = username;
+        this.userName = userName;
         this.password = password;
     }
 
@@ -33,8 +32,8 @@ public class CreateArtifactoryServerStep extends AbstractStepImpl {
         return url;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUserName() {
+        return userName;
     }
 
     public String getPassword() {
@@ -43,9 +42,6 @@ public class CreateArtifactoryServerStep extends AbstractStepImpl {
 
     public static class Execution extends AbstractSynchronousStepExecution<ArtifactoryServer> {
         private static final long serialVersionUID = 1L;
-
-        @StepContextParameter
-        private transient FilePath ws;
 
         @StepContextParameter
         private transient Run build;
@@ -62,7 +58,7 @@ public class CreateArtifactoryServerStep extends AbstractStepImpl {
             if (artifactoryUrl == null || artifactoryUrl == "") {
                 getContext().onFailure(new MissingArgumentException("Artifactory server URL is mandatory"));
             }
-            return new ArtifactoryServer(artifactoryUrl, step.getUsername(), step.getPassword(), build, listener, ws, getContext()/*, step.getCredentialsId()*/);
+            return new ArtifactoryServer(artifactoryUrl, step.getUserName(), step.getPassword(), build, listener/*, step.getCredentialsId()*/);
         }
     }
 
@@ -91,8 +87,8 @@ public class CreateArtifactoryServerStep extends AbstractStepImpl {
             if (StringUtils.isNotEmpty(cStep.getUrl())) {
                 args.put("url", cStep.getUrl());
             }
-            if (StringUtils.isNotEmpty(cStep.getUsername())) {
-                args.put("username", cStep.getUsername());
+            if (StringUtils.isNotEmpty(cStep.getUserName())) {
+                args.put("username", cStep.getUserName());
             }
             if (StringUtils.isNotEmpty(cStep.getPassword())) {
                 args.put("password", cStep.getPassword());

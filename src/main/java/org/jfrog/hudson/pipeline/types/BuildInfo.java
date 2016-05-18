@@ -4,6 +4,7 @@ import hudson.EnvVars;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jfrog.build.api.Artifact;
 import org.jfrog.build.api.Dependency;
@@ -37,7 +38,7 @@ public class BuildInfo implements Serializable {
     private Map<String, String> envVars = new HashMap<String, String>();
     private Map<String, String> sysVars = new HashMap<String, String>();
 
-    public void appendDeployedArtifacts(List<Artifact> artifacts) {
+    protected void appendDeployedArtifacts(List<Artifact> artifacts) {
         if (artifacts == null) {
             return;
         }
@@ -128,6 +129,7 @@ public class BuildInfo implements Serializable {
         return sysVars;
     }
 
+    @Whitelisted
     public void append(BuildInfo other) {
         this.deployedArtifacts.putAll(other.deployedArtifacts);
         this.publishedDependencies.putAll(other.publishedDependencies);
