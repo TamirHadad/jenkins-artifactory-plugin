@@ -1,6 +1,5 @@
 package org.jfrog.hudson.util;
 
-import hudson.model.AbstractBuild;
 import hudson.model.Run;
 import hudson.tasks.LogRotator;
 import jenkins.model.BuildDiscarder;

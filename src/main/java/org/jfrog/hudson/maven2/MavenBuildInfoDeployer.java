@@ -23,7 +23,6 @@ import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.maven.reporters.MavenArtifact;
 import hudson.maven.reporters.MavenArtifactRecord;
-import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.tasks.Fingerprinter;

@@ -1,13 +1,12 @@
-package org.jfrog.hudson.pipeline;
+package org.jfrog.hudson.pipeline.steps;
 
 import com.google.inject.Inject;
 import hudson.Extension;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousStepExecution;
+import org.jfrog.hudson.pipeline.types.BuildInfo;
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.util.Date;
 
 /**
  * Created by romang on 5/2/16.
@@ -31,15 +30,15 @@ public class CreateBuildinfoStep extends AbstractStepImpl {
         return number;
     }
 
-    public static class Execution extends AbstractSynchronousStepExecution<PipelineBuildInfo> {
+    public static class Execution extends AbstractSynchronousStepExecution<BuildInfo> {
         private static final long serialVersionUID = 1L;
 
         @Inject(optional = true)
         private transient CreateBuildinfoStep step;
 
         @Override
-        protected PipelineBuildInfo run() throws Exception {
-            PipelineBuildInfo buildinfo = new PipelineBuildInfo();
+        protected BuildInfo run() throws Exception {
+            BuildInfo buildinfo = new BuildInfo();
             buildinfo.setName(step.getName());
             buildinfo.setNumber(step.getNumber());
             return buildinfo;
@@ -55,7 +54,7 @@ public class CreateBuildinfoStep extends AbstractStepImpl {
 
         @Override
         public String getFunctionName() {
-            return "rtCreateBuildInfo";
+            return "newArtifactoryBuildInfo";
         }
 
         @Override

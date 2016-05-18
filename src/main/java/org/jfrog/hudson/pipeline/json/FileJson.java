@@ -3,8 +3,8 @@ package org.jfrog.hudson.pipeline.json;
 /**
  * Created by romang on 4/20/16.
  */
-public class ArtifactoryFileJson {
-    private ArtifactoryAqlJson aql;
+public class FileJson {
+    private AqlJson aql;
     private String pattern;
     private String target;
     private String props;
@@ -27,7 +27,7 @@ public class ArtifactoryFileJson {
         return target;
     }
 
-    public void setAql(ArtifactoryAqlJson aql) {
+    public void setAql(AqlJson aql) {
         this.aql = aql;
     }
 

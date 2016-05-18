@@ -1,4 +1,4 @@
-package org.jfrog.hudson.pipeline;
+package org.jfrog.hudson.pipeline.types;
 
 import hudson.EnvVars;
 import hudson.model.Run;
@@ -13,6 +13,8 @@ import org.jfrog.build.extractor.clientConfiguration.PatternMatcher;
 import org.jfrog.build.extractor.clientConfiguration.client.ArtifactoryBuildInfoClient;
 import org.jfrog.hudson.ArtifactoryServer;
 import org.jfrog.hudson.CredentialsConfig;
+import org.jfrog.hudson.pipeline.ArtifactoryPipelineConfigurator;
+import org.jfrog.hudson.pipeline.PipelineBuildInfoDeployer;
 import org.jfrog.hudson.util.CredentialManager;
 
 import java.io.IOException;
@@ -23,20 +25,17 @@ import java.util.*;
 /**
  * Created by romang on 4/26/16.
  */
-public class PipelineBuildInfo implements Serializable {
+public class BuildInfo implements Serializable {
 
-    private String name;
-    private String number;
-    private Date date;
+    private String buildName;
+    private String buildNumber;
+    private Date startDate;
 
     private Map<Artifact, Artifact> deployedArtifacts = new HashMap<Artifact, Artifact>();
     private List<BuildDependency> buildDependencies = new ArrayList<BuildDependency>();
     private Map<Dependency, Dependency> publishedDependencies = new HashMap<Dependency, Dependency>();
     private Map<String, String> envVars = new HashMap<String, String>();
     private Map<String, String> sysVars = new HashMap<String, String>();
-
-    public PipelineBuildInfo() {
-    }
 
     public void appendDeployedArtifacts(List<Artifact> artifacts) {
         if (artifacts == null) {
@@ -48,28 +47,27 @@ public class PipelineBuildInfo implements Serializable {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.buildName = name;
     }
 
     public void setNumber(String number) {
-        this.number = number;
+        this.buildNumber = number;
     }
 
-
-    public String getName() {
-        return name;
+    public String getBuildName() {
+        return buildName;
     }
 
-    public String getNumber() {
-        return number;
+    public String getBuildNumber() {
+        return buildNumber;
     }
 
-    public Date getDate() {
-        return date;
+    public Date getStartDate() {
+        return startDate;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setStartDate(Date date) {
+        this.startDate = date;
     }
 
     protected void appendBuildDependencies(List<BuildDependency> dependencies) {
@@ -89,11 +87,11 @@ public class PipelineBuildInfo implements Serializable {
         }
     }
 
-    protected void appendEnvVariables(Map<String, String> vars, IncludeExcludePatterns patterns) {
+    protected void appendEnvVars(Map<String, String> vars, IncludeExcludePatterns patterns) {
         appendVariables(envVars, vars, patterns);
     }
 
-    protected void appendSysVariables(Map<String, String> vars, IncludeExcludePatterns patterns) {
+    protected void appendSysVars(Map<String, String> vars, IncludeExcludePatterns patterns) {
         appendVariables(sysVars, vars, patterns);
     }
 
@@ -130,7 +128,7 @@ public class PipelineBuildInfo implements Serializable {
         return sysVars;
     }
 
-    public void append(PipelineBuildInfo other) {
+    public void append(BuildInfo other) {
         this.deployedArtifacts.putAll(other.deployedArtifacts);
         this.publishedDependencies.putAll(other.publishedDependencies);
         this.buildDependencies.addAll(other.buildDependencies);
@@ -157,6 +155,6 @@ public class PipelineBuildInfo implements Serializable {
         ArtifactoryBuildInfoClient client = server.createArtifactoryClient(preferredDeployer.provideUsername(),
                 preferredDeployer.providePassword(), server.createProxyConfiguration(Jenkins.getInstance().proxy));
 
-        return new PipelineBuildInfoDeployer(config, client, build, listener, this);
+        return new PipelineBuildInfoDeployer(config, client, build, listener, new PipelineBuildInfoAccessor(this));
     }
 }

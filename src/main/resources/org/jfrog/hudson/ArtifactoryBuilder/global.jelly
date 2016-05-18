@@ -25,7 +25,7 @@
                 <input type="hidden" name="stapler-class" value="org.jfrog.hudson.ArtifactoryServer"/>
 
                 <table width="100%">
-                    <f:entry title="Server ID" help="/plugin/artifactory/help/ArtifactoryBuilder/help-url.html">
+                    <f:entry title="Server ID" help="/plugin/artifactory/help/ArtifactoryBuilder/help-serverId.html">
                         <f:textbox field="serverId" value="${server.name}"/>
                     </f:entry>
 

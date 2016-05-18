@@ -1,13 +1,14 @@
-package org.jfrog.hudson.pipeline;
+package org.jfrog.hudson.pipeline.steps;
 
 import com.google.inject.Inject;
 import hudson.Extension;
+import hudson.FilePath;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
-import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
-import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousStepExecution;
-import org.jenkinsci.plugins.workflow.steps.Step;
+import org.jenkinsci.plugins.workflow.steps.*;
+import org.jfrog.hudson.pipeline.types.ArtifactoryServer;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.util.HashMap;
@@ -40,19 +41,28 @@ public class CreateArtifactoryServerStep extends AbstractStepImpl {
         return password;
     }
 
-    public static class Execution extends AbstractSynchronousStepExecution<ArtifactoryPipelineServer> {
+    public static class Execution extends AbstractSynchronousStepExecution<ArtifactoryServer> {
         private static final long serialVersionUID = 1L;
+
+        @StepContextParameter
+        private transient FilePath ws;
+
+        @StepContextParameter
+        private transient Run build;
+
+        @StepContextParameter
+        private transient TaskListener listener;
 
         @Inject(optional = true)
         private transient CreateArtifactoryServerStep step;
 
         @Override
-        protected ArtifactoryPipelineServer run() throws Exception {
+        protected ArtifactoryServer run() throws Exception {
             String artifactoryUrl = step.getUrl();
             if (artifactoryUrl == null || artifactoryUrl == "") {
                 getContext().onFailure(new MissingArgumentException("Artifactory server URL is mandatory"));
             }
-            return new ArtifactoryPipelineServer(artifactoryUrl, step.getUsername(), step.getPassword()/*, step.getCredentialsId()*/);
+            return new ArtifactoryServer(artifactoryUrl, step.getUsername(), step.getPassword(), build, listener, ws, getContext()/*, step.getCredentialsId()*/);
         }
     }
 
@@ -65,7 +75,7 @@ public class CreateArtifactoryServerStep extends AbstractStepImpl {
 
         @Override
         public String getFunctionName() {
-            return "rtNewServer";
+            return "newArtifactoryServer";
         }
 
         @Override
@@ -89,9 +99,5 @@ public class CreateArtifactoryServerStep extends AbstractStepImpl {
             }
             return args;
         }
-
-//        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item project) {
-//            return PluginsUtils.fillPluginCredentials(project);
-//        }
     }
 }

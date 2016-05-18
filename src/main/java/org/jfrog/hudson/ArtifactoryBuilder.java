@@ -39,7 +39,10 @@ import org.kohsuke.stapler.StaplerRequest;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Yossi Shaul
@@ -95,16 +98,19 @@ public class ArtifactoryBuilder extends GlobalConfiguration {
          * @param artifactoryUrl This parameter receives the value that the user has typed as artifactory Url.
          * @return Indicates the outcome of the validation. This is sent to the browser.
          */
-        public FormValidation doCheckServerId(@QueryParameter String value, @QueryParameter String artifactoryUrl) throws IOException, ServletException {
+        public FormValidation doCheckServerId(@QueryParameter String value, @QueryParameter String artifactoryUrl, @QueryParameter String username, @QueryParameter String password, @QueryParameter String credentialsId) throws IOException, ServletException {
             if (value.length() == 0) {
-                return FormValidation.error("Please set a name");
+                return FormValidation.error("Please set server ID");
             }
-            ArtifactoryServer artifactoryServer = RepositoriesUtils.getArtifactoryServer(value, RepositoriesUtils.getArtifactoryServers());
-            if (artifactoryServer != null && !artifactoryServer.getUrl().equals(artifactoryUrl)) {
-                return FormValidation.error("Duplicated id");
-            }
-            if (value.length() < 4) {
-                return FormValidation.warning("Isn't the id too short?");
+            List<ArtifactoryServer> artifactoryServers = RepositoriesUtils.getArtifactoryServers();
+            int countServersByValueAsName = 0;
+            for (ArtifactoryServer server : artifactoryServers) {
+                if (server.getName().equals(value)) {
+                    countServersByValueAsName++;
+                    if (countServersByValueAsName > 1) {
+                        return FormValidation.error("Duplicated server ID");
+                    }
+                }
             }
             return FormValidation.ok();
         }
@@ -174,7 +180,19 @@ public class ArtifactoryBuilder extends GlobalConfiguration {
                 artifactoryServers = null;
             }
             save();
-            return super.configure(req, o);
+            return super.configure(req, o) && !isServerConfigurationError();
+        }
+
+        private boolean isServerConfigurationError() {
+            Map<String,String> serversName = new HashMap<String, String>();
+            for (ArtifactoryServer server : artifactoryServers) {
+                String name = server.getName();
+                if (name == null || name == "" || serversName.get(name) != null) {
+                    return true;
+                }
+                serversName.put(name,name);
+            }
+            return false;
         }
 
         public List<ArtifactoryServer> getArtifactoryServers() {

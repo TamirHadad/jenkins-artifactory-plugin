@@ -1,7 +1,6 @@
-package org.jfrog.hudson.pipeline;
+package org.jfrog.hudson.pipeline.executors;
 
 import hudson.FilePath;
-import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
@@ -17,8 +16,11 @@ import org.jfrog.build.extractor.clientConfiguration.util.WildcardDependenciesHe
 import org.jfrog.hudson.ArtifactoryServer;
 import org.jfrog.hudson.CredentialsConfig;
 import org.jfrog.hudson.generic.DependenciesDownloaderImpl;
-import org.jfrog.hudson.pipeline.json.ArtifactoryDownloadUploadJson;
-import org.jfrog.hudson.pipeline.json.ArtifactoryFileJson;
+import org.jfrog.hudson.pipeline.PipelineUtils;
+import org.jfrog.hudson.pipeline.json.DownloadUploadJson;
+import org.jfrog.hudson.pipeline.json.FileJson;
+import org.jfrog.hudson.pipeline.types.BuildInfo;
+import org.jfrog.hudson.pipeline.types.PipelineBuildInfoAccessor;
 import org.jfrog.hudson.util.JenkinsBuildInfoLog;
 
 import javax.annotation.Nonnull;
@@ -28,31 +30,27 @@ import java.util.List;
 /**
  * Created by romang on 4/19/16.
  */
-public class GenericDownloadExecution {
+public class GenericDownloadExecutor {
     private transient FilePath ws;
-    private transient Run build;
-    private transient Launcher launcher;
-    private transient TaskListener listener;
-    private static final long serialVersionUID = 1L;
-    private PipelineBuildInfo buildInfo;
+    private BuildInfo buildInfo;
     private ArtifactoryServer server;
     private Log log;
 
-    public GenericDownloadExecution(ArtifactoryServer server, TaskListener listener, Run build, FilePath ws, PipelineBuildInfo buildInfo) {
+    public GenericDownloadExecutor(ArtifactoryServer server, TaskListener listener, Run build, FilePath ws, BuildInfo buildInfo) {
         this.server = server;
         this.log = new JenkinsBuildInfoLog(listener);
         this.buildInfo = PipelineUtils.prepareBuildinfo(build, buildInfo);
         this.ws = ws;
     }
 
-    public PipelineBuildInfo execution(String json) throws IOException {
+    public BuildInfo execution(String json) throws IOException, InterruptedException {
         ObjectMapper mapper = new ObjectMapper();
-        ArtifactoryDownloadUploadJson downloadJson = mapper.readValue(json, ArtifactoryDownloadUploadJson.class);
+        DownloadUploadJson downloadJson = mapper.readValue(json, DownloadUploadJson.class);
         downloadArtifacts(downloadJson);
         return this.buildInfo;
     }
 
-    private void downloadArtifacts(ArtifactoryDownloadUploadJson downloadJson) {
+    private void downloadArtifacts(DownloadUploadJson downloadJson) throws IOException, InterruptedException {
         hudson.ProxyConfiguration proxy = Jenkins.getInstance().proxy;
         ProxyConfiguration proxyConfiguration = null;
         if (proxy != null) {
@@ -72,12 +70,12 @@ public class GenericDownloadExecution {
         AqlDependenciesHelper aqlHelper = new AqlDependenciesHelper(dependancyDownloader, server.getUrl(), "", log);
         WildcardDependenciesHelper wildcardHelper = new WildcardDependenciesHelper(dependancyDownloader, server.getUrl(), "", log);
 
-        for (ArtifactoryFileJson file : downloadJson.getFiles()) {
+        for (FileJson file : downloadJson.getFiles()) {
             if (file.getPattern() != null) {
                 wildcardHelper.setTarget(file.getTarget());
-                boolean isFlat = file.getFlat() != null ? StringUtils.toBoolean(file.getFlat()) : false;
+                boolean isFlat = file.getFlat() != null && StringUtils.toBoolean(file.getFlat());
                 wildcardHelper.setFlatDownload(isFlat);
-                boolean isRecursive = file.getRecursive() != null ? StringUtils.toBoolean(file.getRecursive()) : true;
+                boolean isRecursive = file.getRecursive() != null && StringUtils.toBoolean(file.getRecursive());
                 wildcardHelper.setRecursive(isRecursive);
                 String props = file.getProps() == null ? "" : file.getProps();
                 wildcardHelper.setProps(props);
@@ -90,15 +88,9 @@ public class GenericDownloadExecution {
         }
     }
 
-    private void download(String downloadStr, DependenciesHelper helper) {
-        try {
-            List<Dependency> resolvedDependencies = helper.retrievePublishedDependencies(downloadStr);
-            buildInfo.appendPublishedDependencies(resolvedDependencies);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    private void download(String downloadStr, DependenciesHelper helper) throws IOException, InterruptedException {
+        List<Dependency> resolvedDependencies = helper.retrievePublishedDependencies(downloadStr);
+        new PipelineBuildInfoAccessor(this.buildInfo).appendPublishedDependencies(resolvedDependencies);
     }
 
     public void stop(@Nonnull Throwable throwable) throws Exception {

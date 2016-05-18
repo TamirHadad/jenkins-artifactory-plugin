@@ -6,7 +6,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 /**
  * Created by romang on 4/26/16.
  */
-public class ArtifactoryAqlJson {
+public class AqlJson {
 
     private JSONObject find;
 

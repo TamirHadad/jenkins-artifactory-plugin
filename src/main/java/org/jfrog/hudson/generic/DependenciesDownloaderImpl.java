@@ -33,13 +33,12 @@ public class DependenciesDownloaderImpl implements DependenciesDownloader {
     private ArtifactoryDependenciesClient client;
     private FilePath workspace;
     private Log log;
-    boolean flatDownload;
+    private boolean flatDownload = false;
 
     public DependenciesDownloaderImpl(ArtifactoryDependenciesClient client, FilePath workspace, Log log) {
         this.client = client;
         this.workspace = workspace;
         this.log = log;
-        this.flatDownload = false;
     }
 
     public ArtifactoryDependenciesClient getClient() {

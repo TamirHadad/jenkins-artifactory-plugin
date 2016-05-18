@@ -1,4 +1,4 @@
-package org.jfrog.hudson.pipeline;
+package org.jfrog.hudson.pipeline.steps;
 
 import com.google.inject.Inject;
 import hudson.Extension;
@@ -8,14 +8,17 @@ import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
 import org.acegisecurity.acls.NotFoundException;
 import org.apache.commons.cli.MissingArgumentException;
-import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousStepExecution;
 import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 import org.jfrog.hudson.ArtifactoryServer;
+import org.jfrog.hudson.pipeline.PipelineUtils;
 import org.jfrog.hudson.util.RepositoriesUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by romang on 4/21/16.
@@ -32,7 +35,7 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
         return artifactoryServerID;
     }
 
-    public static class Execution extends AbstractSynchronousStepExecution<ArtifactoryPipelineServer> {
+    public static class Execution extends AbstractSynchronousStepExecution<org.jfrog.hudson.pipeline.types.ArtifactoryServer> {
 
         @StepContextParameter
         private transient FilePath ws;
@@ -47,23 +50,28 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
         private transient GetArtifactoryServerStep step;
 
         @Override
-        protected ArtifactoryPipelineServer run() throws Exception {
+        protected org.jfrog.hudson.pipeline.types.ArtifactoryServer run() throws Exception {
             String artifactoryServerID = step.getArtifactoryServerID();
             if (artifactoryServerID == null || artifactoryServerID == "") {
                 getContext().onFailure(new MissingArgumentException("Artifactory server name is mandatory"));
             }
 
-            ArtifactoryServer server = RepositoriesUtils.getArtifactoryServer(step.getArtifactoryServerID(), RepositoriesUtils.getArtifactoryServers());
-            if (server == null) {
+            List<ArtifactoryServer> artifactoryServers = new ArrayList<ArtifactoryServer>();
+            for (ArtifactoryServer server : RepositoriesUtils.getArtifactoryServers()) {
+                if (server.getName().equals(artifactoryServerID)) {
+                    artifactoryServers.add(server);
+                }
+            }
+            if (artifactoryServers.isEmpty()) {
                 getContext().onFailure(new NotFoundException("Couldn't find Artifactory named: " + artifactoryServerID));
             }
-
-            ArtifactoryPipelineServer artifactoryPipelineServer = new ArtifactoryPipelineServer(artifactoryServerID, server.getUrl(),
-                    server.getResolvingCredentialsConfig().getUsername(), server.getResolvingCredentialsConfig().getPassword());
-            artifactoryPipelineServer.setBuild(build);
-            artifactoryPipelineServer.setListener(listener);
-            artifactoryPipelineServer.setWs(ws);
-            artifactoryPipelineServer.setContext(getContext());
+            if (artifactoryServers.size() > 1) {
+                throw new RuntimeException("Duplicate Artifactory name: " + artifactoryServerID);
+            }
+            ArtifactoryServer server = artifactoryServers.get(0);
+            org.jfrog.hudson.pipeline.types.ArtifactoryServer artifactoryPipelineServer = new org.jfrog.hudson.pipeline.types.ArtifactoryServer(artifactoryServerID, server.getUrl(),
+                    server.getResolvingCredentialsConfig().getUsername(), server.getResolvingCredentialsConfig().getPassword(),
+                    build, listener, ws, getContext());
             return artifactoryPipelineServer;
         }
 
@@ -79,7 +87,7 @@ public class GetArtifactoryServerStep extends AbstractStepImpl {
 
         @Override
         public String getFunctionName() {
-            return "rtGetServer";
+            return "getArtifactoryServer";
         }
 
         @Override

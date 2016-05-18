@@ -1,8 +1,6 @@
 package org.jfrog.hudson.util;
 
 import com.google.common.collect.Sets;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.jira.JiraIssue;
