@@ -47,26 +47,32 @@ public class BuildInfo implements Serializable {
         }
     }
 
+    @Whitelisted
     public void setName(String name) {
         this.buildName = name;
     }
 
+    @Whitelisted
     public void setNumber(String number) {
         this.buildNumber = number;
     }
 
+    @Whitelisted
     public String getBuildName() {
         return buildName;
     }
 
+    @Whitelisted
     public String getBuildNumber() {
         return buildNumber;
     }
 
+    @Whitelisted
     public Date getStartDate() {
         return startDate;
     }
 
+    @Whitelisted
     public void setStartDate(Date date) {
         this.startDate = date;
     }
