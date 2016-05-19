@@ -3,6 +3,7 @@ package org.jfrog.hudson.pipeline.dsl;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
 import org.jenkinsci.plugins.workflow.cps.CpsScript;
 import org.jfrog.hudson.pipeline.types.ArtifactoryServer;
+import org.jfrog.hudson.pipeline.types.BuildInfo;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;
@@ -36,5 +37,11 @@ public class ArtifactoryPipelineGlobal implements Serializable {
         ArtifactoryServer server = (ArtifactoryServer) this.script.invokeMethod("newArtifactoryServer", stepVariables);
         server.setCpsScript(this.script);
         return server;
+    }
+
+    @Whitelisted
+    public BuildInfo newBuildInfo() {
+        BuildInfo buildInfo = (BuildInfo) this.script.invokeMethod("newBuildInfo", new LinkedHashMap<String, Object>());
+        return buildInfo;
     }
 }

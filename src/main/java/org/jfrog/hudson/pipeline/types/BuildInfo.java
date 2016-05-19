@@ -75,7 +75,6 @@ public class BuildInfo implements Serializable {
         if (dependencies == null) {
             return;
         }
-
         buildDependencies.addAll(dependencies);
     }
 

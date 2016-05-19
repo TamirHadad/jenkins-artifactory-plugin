@@ -46,6 +46,10 @@ public class PipelineBuildInfoAccessor {
         return this.buildInfo.getBuildName();
     }
 
+    public String getBuildNumber() {
+        return this.buildInfo.getBuildNumber();
+    }
+
     public Map<Dependency, Dependency> getPublishedDependencies() {
         return this.buildInfo.getPublishedDependencies();
     }

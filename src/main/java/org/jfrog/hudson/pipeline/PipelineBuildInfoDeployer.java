@@ -50,13 +50,17 @@ public class PipelineBuildInfoDeployer extends AbstractBuildInfoDeployer {
         if (StringUtils.isNotEmpty(pipelineBuildinfoAccessor.getBuildName())) {
             buildInfo.setName(pipelineBuildinfoAccessor.getBuildName());
         }
+
+        if (StringUtils.isNotEmpty(pipelineBuildinfoAccessor.getBuildNumber())) {
+            buildInfo.setNumber(pipelineBuildinfoAccessor.getBuildNumber());
+        }
     }
 
     public void deploy() throws IOException {
         String artifactoryUrl = configurator.getArtifactoryServer().getUrl();
         listener.getLogger().println("Deploying build info to: " + artifactoryUrl + "/api/build");
-        client.sendBuildInfo(buildInfo);
-        build.getActions().add(0, new BuildInfoResultAction(artifactoryUrl, build));
+        client.sendBuildInfo(this.buildInfo);
+        build.getActions().add(0, new BuildInfoResultAction(artifactoryUrl, build, this.buildInfo));
     }
 
     private void createDeployDetailsAndAddToBuildInfo(List<Artifact> deployedArtifacts,
